@@ -8,15 +8,14 @@ function storePlanning(year, range)
 {
 	const values = range.getValues();
 	const result = new Array(366).fill('');
-	const firstDayOfYear = new Date(year, 0, 1);
+	const timeZone = Session.getScriptTimeZone();
 	const dayCodes = ['Lu', 'Ma', 'Me', 'Je', 'Ve'];
+
+	console.log('Starting storePlanning for year ' + year);
 
 	for (let r = 0; r < 20; r++)
 	{
-		// Calculate the code for the current row
-		// Digit 1-4: each digit covers 5 rows
 		const digit = Math.floor(r / 5) + 1;
-		// Day code rotation: Lu, Ma, Me, Je, Ve
 		const dayCode = dayCodes[r % 5];
 		const code = digit + dayCode;
 
@@ -24,24 +23,38 @@ function storePlanning(year, range)
 		{
 			const cellValue = values[r][c];
 
-			if (cellValue instanceof Date)
+			if (!(cellValue instanceof Date) || cellValue.getFullYear() !== year)
 			{
-				// Ensure the date belongs to the correct year to avoid indexing errors
-				if (cellValue.getFullYear() === year)
-				{
-					// Calculate day-of-year index (0-365)
-					const diff = cellValue.getTime() - firstDayOfYear.getTime();
-					const dayIndex = Math.floor(diff / (1000 * 60 * 60 * 24));
+				continue;
+			}
 
-					if (dayIndex >= 0 && dayIndex < 366)
-					{
-						result[dayIndex] = code;
-					}
-				}
+			// Use 'D' format for day in year (1-366). Map to 0-365 for index.
+			const dayOfYear = Utilities.formatDate(cellValue, timeZone, 'D');
+			const dayIndex = parseInt(dayOfYear) - 1;
+
+			if (r === 0 || c === 0 || dayIndex === 0)
+			{
+				console.log('Debug: Cell[' + r + '][' + c + '] = ' + cellValue + ', dayOfYear="' + dayOfYear + '", dayIndex=' + dayIndex + ', code=' + code);
+			}
+
+			if (dayIndex < 0 || dayIndex >= 366)
+			{
+				continue;
+			}
+
+			if (result[dayIndex] === '')
+			{
+				result[dayIndex] = code;
+			}
+			else
+			{
+				console.log('Warning: Duplicate date found at index ' + dayIndex + '. Existing: ' + result[dayIndex] + ', New: ' + code);
 			}
 		}
 	}
 
+	const filledCount = result.filter(v => v !== '').length;
+	console.log('Planning stored. Total days filled: ' + filledCount);
 	return result;
 }
 

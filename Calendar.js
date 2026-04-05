@@ -51,13 +51,13 @@ function createNewCalendar()
 	sheet.getRange('A1').setValue(year);
 	ss.setActiveSheet(sheet);
 	ui.alert('Succès', 'Le planning ' + year + ' a été créé.', ui.ButtonSet.OK);
-	}
+}
 
-	/**
-	* Caches the planning data from the current active sheet.
-	*/
-	function cacheCurrentPlanning()
-	{
+/**
+ * Caches the planning data from the current active sheet.
+ */
+function cacheCurrentPlanning()
+{
 	const ui = SpreadsheetApp.getUi();
 	const ss = SpreadsheetApp.getActiveSpreadsheet();
 	const sheet = ss.getActiveSheet();
@@ -71,8 +71,13 @@ function createNewCalendar()
 	}
 
 	const year = parseInt(match[1]);
-	// Range B2:M21 is 20 rows by 12 columns
-	const range = sheet.getRange('B2:M21');
+	const range = getCalendarRange(sheet);
+
+	if (!range)
+	{
+		ui.alert('Erreur', 'Impossible de trouver le début du planning (une cellule en colonne A commençant par "1" et finissant par "lundi").', ui.ButtonSet.OK);
+		return;
+	}
 
 	try
 	{
@@ -83,11 +88,40 @@ function createNewCalendar()
 	{
 		ui.alert('Erreur', 'Une erreur est survenue lors de la mise en cache : ' + error.message, ui.ButtonSet.OK);
 	}
+}
+
+/**
+ * Finds the 20x12 calendar range in the given sheet.
+ * @param {GoogleAppsScript.Spreadsheet.Sheet} sheet The sheet to search in.
+ * @returns {GoogleAppsScript.Spreadsheet.Range|null} The range or null if not found.
+ */
+function getCalendarRange(sheet)
+{
+	// Dynamically locate the first row in column A that matches /^1.*lundi$/
+	const lastRow = sheet.getLastRow();
+	const colAValues = sheet.getRange(1, 1, lastRow).getDisplayValues();
+	let startRow = -1;
+
+	for (let i = 0; i < lastRow; i++)
+	{
+		if (/^1.*lundi$/.test(colAValues[i][0]))
+		{
+			startRow = i + 1;
+			break;
+		}
 	}
 
-	/**
-	* Triggered when a cell is modified.
-	...
+	if (startRow === -1)
+	{
+		return null;
+	}
+
+	// Range starting at Column B of that row, 20 rows by 12 columns
+	return sheet.getRange(startRow, 2, 20, 12);
+}
+
+/**
+ * Triggered when a cell is modified.
  * @param {GoogleAppsScript.Events.SheetsOnEdit} e
  */
 function onEdit(e)
