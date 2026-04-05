@@ -11,8 +11,6 @@ function storePlanning(year, range)
 	const timeZone = Session.getScriptTimeZone();
 	const dayCodes = ['Lu', 'Ma', 'Me', 'Je', 'Ve'];
 
-	console.log('Starting storePlanning for year ' + year);
-
 	for (let r = 0; r < 20; r++)
 	{
 		const digit = Math.floor(r / 5) + 1;
@@ -32,11 +30,6 @@ function storePlanning(year, range)
 			const dayOfYear = Utilities.formatDate(cellValue, timeZone, 'D');
 			const dayIndex = parseInt(dayOfYear) - 1;
 
-			if (r === 0 || c === 0 || dayIndex === 0)
-			{
-				console.log('Debug: Cell[' + r + '][' + c + '] = ' + cellValue + ', dayOfYear="' + dayOfYear + '", dayIndex=' + dayIndex + ', code=' + code);
-			}
-
 			if (dayIndex < 0 || dayIndex >= 366)
 			{
 				continue;
@@ -46,15 +39,9 @@ function storePlanning(year, range)
 			{
 				result[dayIndex] = code;
 			}
-			else
-			{
-				console.log('Warning: Duplicate date found at index ' + dayIndex + '. Existing: ' + result[dayIndex] + ', New: ' + code);
-			}
 		}
 	}
 
-	const filledCount = result.filter(v => v !== '').length;
-	console.log('Planning stored. Total days filled: ' + filledCount);
 	return result;
 }
 
@@ -80,10 +67,26 @@ function savePlanning(year, range)
 		throw new Error('Year must be greater than 2020.');
 	}
 	
+	// Check existing data to avoid unnecessary writes
+	const existingRange = sheet.getRange(row, 1, 1, 367);
+	const existingValues = existingRange.getValues()[0];
+	const existingYear = existingValues[0];
+	const existingCodes = existingValues.slice(1);
+
+	// Check if year matches AND all codes match
+	const yearMatches = (existingYear === year);
+	const codesMatch = codes.every((code, index) => code === existingCodes[index]);
+
+	if (yearMatches && codesMatch)
+	{
+		console.log('Planning for ' + year + ' is already up to date. Skipping write.');
+		return;
+	}
+	
 	// Write the year in column A
 	sheet.getRange(row, 1).setValue(year);
 	
 	// Write the 366 codes in columns B to ... (366 columns starting from column 2)
-	// We use a 2D array [[]] for setValues
 	sheet.getRange(row, 2, 1, 366).setValues([codes]);
+	console.log('Planning for ' + year + ' updated in the sheet.');
 }
