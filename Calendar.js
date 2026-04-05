@@ -165,8 +165,11 @@ function onEdit(e)
 		onEditMonday(range, sheet, row, col);
 	}
 
-	// Automatically cache if the edited value is a Date
-	if (range.getValue() instanceof Date)
+	// Automatically cache if the edited value is a Date OR if it was a date and was deleted
+	const newValue = range.getValue();
+	const oldValue = e.oldValue;
+
+	if (newValue instanceof Date || (newValue === '' && oldValue && (oldValue.includes('/') || oldValue.includes('-'))))
 	{
 		performCaching(sheet);
 	}
