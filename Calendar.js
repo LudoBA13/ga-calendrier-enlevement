@@ -7,6 +7,7 @@ function onOpen()
 	const ui = SpreadsheetApp.getUi();
 	ui.createMenu('Planning')
 		.addItem('Créer un nouveau planning', 'createNewCalendar')
+		.addItem('Mettre en cache', 'cacheCurrentPlanning')
 		.addToUi();
 }
 
@@ -49,12 +50,44 @@ function createNewCalendar()
 	sheet.setName(sheetName);
 	sheet.getRange('A1').setValue(year);
 	ss.setActiveSheet(sheet);
-	
 	ui.alert('Succès', 'Le planning ' + year + ' a été créé.', ui.ButtonSet.OK);
-}
+	}
 
-/**
- * Triggered when a cell is modified.
+	/**
+	* Caches the planning data from the current active sheet.
+	*/
+	function cacheCurrentPlanning()
+	{
+	const ui = SpreadsheetApp.getUi();
+	const ss = SpreadsheetApp.getActiveSpreadsheet();
+	const sheet = ss.getActiveSheet();
+	const sheetName = sheet.getName();
+	const match = sheetName.match(/^Calendrier(20\d+)$/);
+
+	if (!match)
+	{
+		ui.alert('Erreur', 'Cette action ne peut être effectuée que sur une feuille de planning (ex: Calendrier2026).', ui.ButtonSet.OK);
+		return;
+	}
+
+	const year = parseInt(match[1]);
+	// Range B2:M21 is 20 rows by 12 columns
+	const range = sheet.getRange('B2:M21');
+
+	try
+	{
+		savePlanning(year, range);
+		ui.alert('Succès', 'Le planning ' + year + ' a été mis en cache.', ui.ButtonSet.OK);
+	}
+	catch (error)
+	{
+		ui.alert('Erreur', 'Une erreur est survenue lors de la mise en cache : ' + error.message, ui.ButtonSet.OK);
+	}
+	}
+
+	/**
+	* Triggered when a cell is modified.
+	...
  * @param {GoogleAppsScript.Events.SheetsOnEdit} e
  */
 function onEdit(e)
