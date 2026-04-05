@@ -35,10 +35,7 @@ function storePlanning(year, range)
 				continue;
 			}
 
-			if (result[dayIndex] === '')
-			{
-				result[dayIndex] = code;
-			}
+			result[dayIndex] = code;
 		}
 	}
 
