@@ -1,9 +1,9 @@
 /**
- * Stores planning data for a given year based on a range of dates.
- * @param {number} year The year for the planning.
- * @param {GoogleAppsScript.Spreadsheet.Range} range A 20x12 range containing dates.
- * @returns {string[]} An array of 366 codes representing each day of the year.
- */
+* Stores planning data for a given year based on a range of dates.
+* @param {number} year The year for the planning.
+* @param {GoogleAppsScript.Spreadsheet.Range} range A 20x12 range containing dates.
+* @returns {string[]} An array of 366 codes representing each day of the year.
+*/
 function storePlanning(year, range)
 {
 	const values = range.getValues();
@@ -46,27 +46,27 @@ function storePlanning(year, range)
 }
 
 /**
- * Stores the planning data into the 'Planning' sheet.
- * @param {number} year The year to store.
- * @param {GoogleAppsScript.Spreadsheet.Range} range The source range of dates.
- */
+* Stores the planning data into the 'Planning' sheet.
+* @param {number} year The year to store.
+* @param {GoogleAppsScript.Spreadsheet.Range} range The source range of dates.
+*/
 function savePlanning(year, range)
 {
 	const codes = storePlanning(year, range);
 	const ss = SpreadsheetApp.getActiveSpreadsheet();
 	let sheet = ss.getSheetByName('Planning');
-	
+
 	if (!sheet)
 	{
 		sheet = ss.insertSheet('Planning');
 	}
-	
+
 	const row = year - 2020;
 	if (row < 1)
 	{
 		throw new Error('Year must be greater than 2020.');
 	}
-	
+
 	// Check existing data to avoid unnecessary writes
 	const existingRange = sheet.getRange(row, 1, 1, 367);
 	const existingValues = existingRange.getValues()[0];
@@ -82,10 +82,10 @@ function savePlanning(year, range)
 		console.log('Planning for ' + year + ' is already up to date. Skipping write.');
 		return;
 	}
-	
+
 	// Write the year in column A
 	sheet.getRange(row, 1).setValue(year);
-	
+
 	// Write the 366 codes in columns B to ... (366 columns starting from column 2)
 	sheet.getRange(row, 2, 1, 366).setValues([codes]);
 	console.log('Planning for ' + year + ' updated in the sheet.');

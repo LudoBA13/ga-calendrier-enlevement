@@ -1,6 +1,6 @@
 /**
- * @OnlyCurrentDoc
- */
+* @OnlyCurrentDoc
+*/
 
 function onOpen()
 {
@@ -15,37 +15,37 @@ function createNewCalendar()
 {
 	const ui = SpreadsheetApp.getUi();
 	const response = ui.prompt('Nouveau planning', 'Entrez l\'année :', ui.ButtonSet.OK_CANCEL);
-	
+
 	if (response.getSelectedButton() !== ui.Button.OK)
 	{
 		return;
 	}
-	
+
 	const year = response.getResponseText().trim();
 	if (!year || isNaN(year))
 	{
 		ui.alert('Erreur', 'Veuillez entrer une année valide.', ui.ButtonSet.OK);
 		return;
 	}
-	
+
 	const sheetName = 'Calendrier' + year;
 	const ss = SpreadsheetApp.getActiveSpreadsheet();
 	let sheet = ss.getSheetByName(sheetName);
-	
+
 	if (sheet)
 	{
 		ui.alert('Information', 'Le planning ' + year + ' existe déjà.', ui.ButtonSet.OK);
 		ss.setActiveSheet(sheet);
 		return;
 	}
-	
+
 	const template = ss.getSheetByName('CalendrierModèle');
 	if (!template)
 	{
 		ui.alert('Erreur', 'La feuille \'CalendrierModèle\' est introuvable.', ui.ButtonSet.OK);
 		return;
 	}
-	
+
 	sheet = template.copyTo(ss);
 	sheet.setName(sheetName);
 	sheet.getRange('A1').setValue(year);
@@ -54,8 +54,8 @@ function createNewCalendar()
 }
 
 /**
- * Caches the planning data from the current active sheet.
- */
+* Caches the planning data from the current active sheet.
+*/
 function cacheCurrentPlanning()
 {
 	const ui = SpreadsheetApp.getUi();
@@ -91,10 +91,10 @@ function cacheCurrentPlanning()
 }
 
 /**
- * Finds the 20x12 calendar range in the given sheet.
- * @param {GoogleAppsScript.Spreadsheet.Sheet} sheet The sheet to search in.
- * @returns {GoogleAppsScript.Spreadsheet.Range|null} The range or null if not found.
- */
+* Finds the 20x12 calendar range in the given sheet.
+* @param {GoogleAppsScript.Spreadsheet.Sheet} sheet The sheet to search in.
+* @returns {GoogleAppsScript.Spreadsheet.Range|null} The range or null if not found.
+*/
 function getCalendarRange(sheet)
 {
 	// Dynamically locate the first row in column A that matches /^1.*lundi$/
@@ -121,9 +121,9 @@ function getCalendarRange(sheet)
 }
 
 /**
- * Triggered when a cell is modified.
- * @param {GoogleAppsScript.Events.SheetsOnEdit} e
- */
+* Triggered when a cell is modified.
+* @param {GoogleAppsScript.Events.SheetsOnEdit} e
+*/
 function onEdit(e)
 {
 	const range = e.range;
@@ -149,12 +149,12 @@ function onEdit(e)
 }
 
 /**
- * Handles the logic when a cell on a "lundi" row is edited.
- * @param {GoogleAppsScript.Spreadsheet.Range} range The modified range.
- * @param {GoogleAppsScript.Spreadsheet.Sheet} sheet The active sheet.
- * @param {number} row The row number of the edit.
- * @param {number} col The column number of the edit.
- */
+* Handles the logic when a cell on a "lundi" row is edited.
+* @param {GoogleAppsScript.Spreadsheet.Range} range The modified range.
+* @param {GoogleAppsScript.Spreadsheet.Sheet} sheet The active sheet.
+* @param {number} row The row number of the edit.
+* @param {number} col The column number of the edit.
+*/
 function onEditMonday(range, sheet, row, col)
 {
 	const value = range.getValue();
@@ -194,7 +194,7 @@ function onEditMonday(range, sheet, row, col)
 
 		const currentIndex = i - 1;
 		const currentValue = targetValues[currentIndex][0];
-		
+
 		// If a next row is empty OR is a date, it should be modified
 		if (currentValue === '' || currentValue instanceof Date)
 		{
