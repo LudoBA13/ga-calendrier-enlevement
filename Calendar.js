@@ -98,20 +98,42 @@ function onEditMonday(range, sheet, row, col)
 		return;
 	}
 
-	// Read the 4 cells below to check their current values
-	const targetRange = sheet.getRange(row + 1, col, 4, 1);
+	const cellAValue = sheet.getRange(row, 1).getDisplayValue();
+	const match = cellAValue.match(/^([1234])/);
+	if (!match)
+	{
+		return;
+	}
+
+	const n = parseInt(match[1]);
+	const count = ((5 - n) * 5) - 1;
+
+	// Read the cells below to check their current values
+	const targetRange = sheet.getRange(row + 1, col, count, 1);
 	const targetValues = targetRange.getValues();
 
-	for (let i = 0; i < 4; i++)
+	let daysToAdd = 0;
+	for (let i = 1; i <= count; i++)
 	{
-		const currentValue = targetValues[i][0];
+		// After 4 consecutive days (Tue, Wed, Thu, Fri), skip to next Monday
+		if (i % 5 === 0)
+		{
+			daysToAdd += 3;
+		}
+		else
+		{
+			daysToAdd += 1;
+		}
+
+		const currentIndex = i - 1;
+		const currentValue = targetValues[currentIndex][0];
 		
 		// If a next row is empty OR is a date, it should be modified
 		if (currentValue === '' || currentValue instanceof Date)
 		{
 			const newValue = new Date(value);
-			newValue.setDate(newValue.getDate() + (i + 1));
-			targetValues[i][0] = newValue;
+			newValue.setDate(newValue.getDate() + daysToAdd);
+			targetValues[currentIndex][0] = newValue;
 		}
 	}
 
