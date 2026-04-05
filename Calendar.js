@@ -1,6 +1,6 @@
 /**
-* @OnlyCurrentDoc
-*/
+ * @OnlyCurrentDoc
+ */
 
 function onOpen()
 {
@@ -54,20 +54,39 @@ function createNewCalendar()
 }
 
 /**
-* Caches the planning data from the current active sheet.
-*/
+ * Caches the planning data from the current active sheet.
+ */
 function cacheCurrentPlanning()
 {
 	const ui = SpreadsheetApp.getUi();
 	const ss = SpreadsheetApp.getActiveSpreadsheet();
 	const sheet = ss.getActiveSheet();
+
+	const result = performCaching(sheet);
+
+	if (result.success)
+	{
+		ui.alert('Succès', result.message, ui.ButtonSet.OK);
+	}
+	else
+	{
+		ui.alert('Erreur', result.message, ui.ButtonSet.OK);
+	}
+}
+
+/**
+ * Logic to perform caching for a specific sheet.
+ * @param {GoogleAppsScript.Spreadsheet.Sheet} sheet
+ * @returns {{success: boolean, message: string}}
+ */
+function performCaching(sheet)
+{
 	const sheetName = sheet.getName();
 	const match = sheetName.match(/^Calendrier(20\d+)$/);
 
 	if (!match)
 	{
-		ui.alert('Erreur', 'Cette action ne peut être effectuée que sur une feuille de planning (ex: Calendrier2026).', ui.ButtonSet.OK);
-		return;
+		return { success: false, message: 'Cette action ne peut être effectuée que sur une feuille de planning (ex: Calendrier2026).' };
 	}
 
 	const year = parseInt(match[1]);
@@ -75,26 +94,25 @@ function cacheCurrentPlanning()
 
 	if (!range)
 	{
-		ui.alert('Erreur', 'Impossible de trouver le début du planning (une cellule en colonne A commençant par "1" et finissant par "lundi").', ui.ButtonSet.OK);
-		return;
+		return { success: false, message: 'Impossible de trouver le début du planning (une cellule en colonne A commençant par "1" et finissant par "lundi").' };
 	}
 
 	try
 	{
 		savePlanning(year, range);
-		ui.alert('Succès', 'Le planning ' + year + ' a été mis en cache.', ui.ButtonSet.OK);
+		return { success: true, message: 'Le planning ' + year + ' a été mis en cache.' };
 	}
 	catch (error)
 	{
-		ui.alert('Erreur', 'Une erreur est survenue lors de la mise en cache : ' + error.message, ui.ButtonSet.OK);
+		return { success: false, message: 'Une erreur est survenue lors de la mise en cache : ' + error.message };
 	}
 }
 
 /**
-* Finds the 20x12 calendar range in the given sheet.
-* @param {GoogleAppsScript.Spreadsheet.Sheet} sheet The sheet to search in.
-* @returns {GoogleAppsScript.Spreadsheet.Range|null} The range or null if not found.
-*/
+ * Finds the 20x12 calendar range in the given sheet.
+ * @param {GoogleAppsScript.Spreadsheet.Sheet} sheet The sheet to search in.
+ * @returns {GoogleAppsScript.Spreadsheet.Range|null} The range or null if not found.
+ */
 function getCalendarRange(sheet)
 {
 	// Dynamically locate the first row in column A that matches /^1.*lundi$/
@@ -121,9 +139,9 @@ function getCalendarRange(sheet)
 }
 
 /**
-* Triggered when a cell is modified.
-* @param {GoogleAppsScript.Events.SheetsOnEdit} e
-*/
+ * Triggered when a cell is modified.
+ * @param {GoogleAppsScript.Events.SheetsOnEdit} e
+ */
 function onEdit(e)
 {
 	const range = e.range;
@@ -146,15 +164,21 @@ function onEdit(e)
 	{
 		onEditMonday(range, sheet, row, col);
 	}
+
+	// Automatically cache if the edited value is a Date
+	if (range.getValue() instanceof Date)
+	{
+		performCaching(sheet);
+	}
 }
 
 /**
-* Handles the logic when a cell on a "lundi" row is edited.
-* @param {GoogleAppsScript.Spreadsheet.Range} range The modified range.
-* @param {GoogleAppsScript.Spreadsheet.Sheet} sheet The active sheet.
-* @param {number} row The row number of the edit.
-* @param {number} col The column number of the edit.
-*/
+ * Handles the logic when a cell on a "lundi" row is edited.
+ * @param {GoogleAppsScript.Spreadsheet.Range} range The modified range.
+ * @param {GoogleAppsScript.Spreadsheet.Sheet} sheet The active sheet.
+ * @param {number} row The row number of the edit.
+ * @param {number} col The column number of the edit.
+ */
 function onEditMonday(range, sheet, row, col)
 {
 	const value = range.getValue();
