@@ -169,7 +169,7 @@ function onEdit(e)
 	const newValue = range.getValue();
 	const oldValue = e.oldValue;
 
-	if (newValue instanceof Date || (newValue === '' && oldValue && /[\/-]/.test(oldValue)))
+	if (newValue instanceof Date || (newValue === '' && /[\/-]/.test(oldValue)))
 	{
 		performCaching(sheet);
 	}
