@@ -50,7 +50,15 @@ function createNewCalendar()
 	sheet.setName(sheetName);
 	sheet.getRange('A1').setValue(year);
 
-	//TODO: set the first cell of row (year - 2020) of sheet 'Planning' to `year`, then the second cell to a formula that executes TO_ROW() on the address of the range returned by getCalendarRange(sheet)
+	// Add year to 'Planning' sheet
+	const planningSheet = ss.getSheetByName('Planning');
+	if (planningSheet)
+	{
+		const row = year - 2020;
+		const range = getCalendarRange(sheet);
+		planningSheet.getRange(row, 1).setValue(year);
+		planningSheet.getRange(row, 2).setFormula('=TOROW(\'' + sheetName + '\'!' + range.getA1Notation() + '; 0; 1)');
+	}
 
 	ss.setActiveSheet(sheet);
 	ui.alert('Succès', 'Le planning ' + year + ' a été créé.', ui.ButtonSet.OK);
