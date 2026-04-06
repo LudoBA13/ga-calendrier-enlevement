@@ -43,21 +43,20 @@ function storePlanning(year, range)
 }
 
 /**
-* Stores the planning data into the 'Calendar' sheet.
-* @param {number} year The year to store.
-* @param {GoogleAppsScript.Spreadsheet.Range} range The source range of dates.
-*/
+ * Stores the planning data into the 'CalendarData' sheet.
+ * @param {number} year The year to store.
+ * @param {GoogleAppsScript.Spreadsheet.Range} range The source range of dates.
+ */
 function savePlanning(year, range)
 {
 	const codes = storePlanning(year, range);
 	const ss = SpreadsheetApp.getActiveSpreadsheet();
-	let sheet = ss.getSheetByName('Calendar');
+	let sheet = ss.getSheetByName('CalendarData');
 
 	if (!sheet)
 	{
-		sheet = ss.insertSheet('Calendar');
+		sheet = ss.insertSheet('CalendarData');
 	}
-
 	const row = year - 2020;
 	if (row < 1)
 	{
