@@ -67,14 +67,9 @@ function savePlanning(year, range)
 	// Check existing data to avoid unnecessary writes
 	const existingRange = sheet.getRange(row, 1, 1, 367);
 	const existingValues = existingRange.getValues()[0];
-	const existingYear = existingValues[0];
-	const existingCodes = existingValues.slice(1);
 
 	// Check if year matches AND all codes match
-	const yearMatches = (existingYear === year);
-	const codesMatch = codes.every((code, index) => code === existingCodes[index]);
-
-	if (yearMatches && codesMatch)
+	if (existingValues[0] === year && JSON.stringify(codes) === JSON.stringify(existingValues.slice(1)))
 	{
 		console.log('Planning for ' + year + ' is already up to date. Skipping write.');
 		return;
