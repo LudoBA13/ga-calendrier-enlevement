@@ -5,8 +5,8 @@
 function onOpen()
 {
 	const ui = SpreadsheetApp.getUi();
-	ui.createMenu('Planning')
-		.addItem('Créer un nouveau planning', 'createNewCalendar')
+	ui.createMenu('Calendrier')
+		.addItem('Créer un nouveau calendrier', 'createNewCalendar')
 		.addItem('Mettre en cache', 'cacheCurrentPlanning')
 		.addToUi();
 }
@@ -14,7 +14,7 @@ function onOpen()
 function createNewCalendar()
 {
 	const ui = SpreadsheetApp.getUi();
-	const response = ui.prompt('Nouveau planning', 'Entrez l\'année :', ui.ButtonSet.OK_CANCEL);
+	const response = ui.prompt('Nouveau calendrier', 'Entrez l\'année :', ui.ButtonSet.OK_CANCEL);
 
 	if (response.getSelectedButton() !== ui.Button.OK)
 	{
@@ -49,6 +49,9 @@ function createNewCalendar()
 	sheet = template.copyTo(ss);
 	sheet.setName(sheetName);
 	sheet.getRange('A1').setValue(year);
+
+	//TODO: set the first cell of row (year - 2020) of sheet 'Planning' to `year`, then the second cell to a formula that executes TO_ROW() on the address of the range returned by getCalendarRange(sheet)
+
 	ss.setActiveSheet(sheet);
 	ui.alert('Succès', 'Le planning ' + year + ' a été créé.', ui.ButtonSet.OK);
 }

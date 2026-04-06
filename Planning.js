@@ -43,7 +43,7 @@ function storePlanning(year, range)
 }
 
 /**
-* Stores the planning data into the 'Planning' sheet.
+* Stores the planning data into the 'Calendar' sheet.
 * @param {number} year The year to store.
 * @param {GoogleAppsScript.Spreadsheet.Range} range The source range of dates.
 */
@@ -51,11 +51,11 @@ function savePlanning(year, range)
 {
 	const codes = storePlanning(year, range);
 	const ss = SpreadsheetApp.getActiveSpreadsheet();
-	let sheet = ss.getSheetByName('Planning');
+	let sheet = ss.getSheetByName('Calendar');
 
 	if (!sheet)
 	{
-		sheet = ss.insertSheet('Planning');
+		sheet = ss.insertSheet('Calendar');
 	}
 
 	const row = year - 2020;
@@ -71,7 +71,7 @@ function savePlanning(year, range)
 	// Check if year matches AND all codes match
 	if (existingValues[0] === year && JSON.stringify(codes) === JSON.stringify(existingValues.slice(1)))
 	{
-		console.log('Planning for ' + year + ' is already up to date. Skipping write.');
+		console.log('Calendar for ' + year + ' is already up to date. Skipping write.');
 		return;
 	}
 
@@ -80,5 +80,5 @@ function savePlanning(year, range)
 
 	// Write the 366 codes in columns B to ... (366 columns starting from column 2)
 	sheet.getRange(row, 2, 1, 366).setValues([codes]);
-	console.log('Planning for ' + year + ' updated in the sheet.');
+	console.log('Calendar for ' + year + ' updated in the sheet.');
 }
