@@ -21,10 +21,10 @@ function createNewCalendar()
 		return;
 	}
 
-	const year = response.getResponseText().trim();
-	if (!year || isNaN(year))
+	const year = parseInt(response.getResponseText().trim());
+	if (isNaN(year) || year < 2023)
 	{
-		ui.alert('Erreur', 'Veuillez entrer une année valide.', ui.ButtonSet.OK);
+		ui.alert('Erreur', 'Veuillez entrer une année valide (>= 2023).', ui.ButtonSet.OK);
 		return;
 	}
 
