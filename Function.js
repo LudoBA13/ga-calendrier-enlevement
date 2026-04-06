@@ -28,6 +28,28 @@ function getDateToPlanningMap(year)
 }
 
 /**
+ * Custom function to get planning code for a date or range of dates.
+ * @param {Date|Array<Date>} input The date or range of dates.
+ * @returns {string|Array<string>} The planning code or array of codes.
+ * @customfunction
+ */
+function DATE_TO_PLANNING(input)
+{
+	if (Array.isArray(input))
+	{
+		return input.map(function(row)
+		{
+			return row.map(function(cell)
+			{
+				return cell instanceof Date ? dateToPlanning(cell) : '';
+			});
+		});
+	}
+
+	return input instanceof Date ? dateToPlanning(input) : '';
+}
+
+/**
  * Gets the planning code for a specific date.
  * @param {Date} date The date.
  * @returns {string} The planning code.
