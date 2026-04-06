@@ -50,8 +50,8 @@ function createNewCalendar()
 	sheet.setName(sheetName);
 	sheet.getRange('A1').setValue(year);
 
-	// Add year to 'PlanningData' sheet
-	const planningSheet = ss.getSheetByName('PlanningData');
+	// Add year to 'PlanningToDate' sheet
+	const planningSheet = ss.getSheetByName('PlanningToDate');
 	if (planningSheet)
 	{
 		const row = year - 2020;
