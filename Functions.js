@@ -3,6 +3,7 @@ const yearMonthCache = {};
 const dayPlanningCache = {};
 const dayMonthCache = {};
 const planningDateCache = {};
+const planningIdx = {"1Lu":0,"1Ma":1,"1Me":2,"1Je":3,"1Ve":4,"2Lu":5,"2Ma":6,"2Me":7,"2Je":8,"2Ve":9,"3Lu":10,"3Ma":11,"3Me":12,"3Je":13,"3Ve":14,"4Lu":15,"4Ma":16,"4Me":17,"4Je":18,"4Ve":19}
 
 /**
  * Gets the planning map for a specific year from the 'DateToPlanning' sheet.
@@ -98,24 +99,12 @@ function getPlanningToDateMap(year)
  */
 function PLANNING_TO_DATE(code, year, month)
 {
-	if (!code || typeof code !== 'string' || code.length < 3)
+	if (typeof code !== 'string')
 	{
 		return '';
 	}
 
-	const week = parseInt(code.substring(0, 1));
-	const dayCode = code.substring(1, 3);
-	const dayCodes = ['Lu', 'Ma', 'Me', 'Je', 'Ve'];
-	const dayIndex = dayCodes.indexOf(dayCode);
-
-	if (isNaN(week) || dayIndex === -1)
-	{
-		return '';
-	}
-
-	const index = (week - 1) * 5 + dayIndex;
 	const cacheKey = year + '-' + month;
-
 	if (!planningDateCache[cacheKey])
 	{
 		const yearMap = getPlanningToDateMap(year);
@@ -126,8 +115,8 @@ function PLANNING_TO_DATE(code, year, month)
 		planningDateCache[cacheKey] = yearMap[month];
 	}
 
-	const monthDays = planningDateCache[cacheKey];
-	const date = monthDays[index];
+	const index = planningIdx[code];
+	const date = planningDateCache[cacheKey][index];
 
 	return date instanceof Date ? date : '';
 }

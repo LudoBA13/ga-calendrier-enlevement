@@ -62,7 +62,32 @@ function storePlanning(year, range)
 */
 function storeMonths(year, range)
 {
-	return extractDataFromCalendar(year, range, (date) => date.getMonth() + 1);
+	const dates = range.getValues()[0];
+	dates[0] = new Date(year, 0, 1);
+	const result = [];
+
+	for (let i = 0; i < 11; i++)
+	{
+		const start = new Date(dates[i]);
+		const end = new Date(dates[i + 1]);
+		const diffInMs = end.getTime() - start.getTime();
+		const diffInDays = Math.round(diffInMs / (1000 * 60 * 60 * 24));
+
+		for (let d = 0; d < diffInDays; d++)
+		{
+			if (result.length < 366)
+			{
+				result.push(i + 1);
+			}
+		}
+	}
+
+	while (result.length < 366)
+	{
+		result.push(12);
+	}
+
+	return result;
 }
 
 /**
