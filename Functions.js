@@ -6,19 +6,56 @@ const planningDateCache = {};
 const planningIdx = {"1Lu":0,"1Ma":1,"1Me":2,"1Je":3,"1Ve":4,"2Lu":5,"2Ma":6,"2Me":7,"2Je":8,"2Ve":9,"3Lu":10,"3Ma":11,"3Me":12,"3Je":13,"3Ve":14,"4Lu":15,"4Ma":16,"4Me":17,"4Je":18,"4Ve":19}
 
 /**
+ * Ensures a sheet exists, is correctly sized, and contains an IMPORTRANGE formula.
+ * @param {string} sheetName The name of the sheet.
+ * @param {number} expectedColumns The number of columns the sheet should have.
+ * @returns {GoogleAppsScript.Spreadsheet.Sheet} The sheet.
+ */
+function ensureSheet(sheetName, expectedColumns)
+{
+	const ss = SpreadsheetApp.getActiveSpreadsheet();
+	let sheet = ss.getSheetByName(sheetName);
+	if (!sheet)
+	{
+		sheet = ss.insertSheet(sheetName);
+		const masterId = '1H3WpuEOI8mJvXh1kLyX2Cn4Rwzt8YnRa07-zWHOJBuA';
+		const lastColLetter = sheet.getRange(1, expectedColumns).getA1Notation().replace(/\d/g, '');
+		sheet.getRange(1, 1).setFormula('=IMPORTRANGE("' + masterId + '"; "' + sheetName + '!A:' + lastColLetter + '")');
+
+		// Resize columns
+		const currentCols = sheet.getMaxColumns();
+		if (currentCols > expectedColumns)
+		{
+			sheet.deleteColumns(expectedColumns + 1, currentCols - expectedColumns);
+		}
+		else if (currentCols < expectedColumns)
+		{
+			sheet.insertColumnsAfter(currentCols, expectedColumns - currentCols);
+		}
+
+		// Resize rows (ensure at least 50 rows)
+		const expectedRows = 50;
+		const currentRows = sheet.getMaxRows();
+		if (currentRows > expectedRows)
+		{
+			sheet.deleteRows(expectedRows + 1, currentRows - expectedRows);
+		}
+		else if (currentRows < expectedRows)
+		{
+			sheet.insertRowsAfter(currentRows, expectedRows - currentRows);
+		}
+	}
+	return sheet;
+}
+
+/**
  * Gets the planning map for a specific year from the 'DateToPlanning' sheet.
  * @param {number} year The year to retrieve.
  * @returns {Array<string>} The values from columns B to NC for the given year.
  */
 function getDateToPlanningMap(year)
 {
-	const ss = SpreadsheetApp.getActiveSpreadsheet();
-	const sheet = ss.getSheetByName('DateToPlanning');
-
-	if (!sheet)
-	{
-		throw new Error('Sheet "DateToPlanning" not found.');
-	}
+	const sheet = ensureSheet('DateToPlanning', 367);
 
 	const row = year - 2020;
 	if (row < 1)
@@ -38,13 +75,7 @@ function getDateToPlanningMap(year)
  */
 function getDateToPlanningMonthMap(year)
 {
-	const ss = SpreadsheetApp.getActiveSpreadsheet();
-	const sheet = ss.getSheetByName('DateToPlanningMonth');
-
-	if (!sheet)
-	{
-		throw new Error('Sheet "DateToPlanningMonth" not found.');
-	}
+	const sheet = ensureSheet('DateToPlanningMonth', 367);
 
 	const row = year - 2020;
 	if (row < 1)
@@ -64,13 +95,7 @@ function getDateToPlanningMonthMap(year)
  */
 function getPlanningToDateMap(year)
 {
-	const ss = SpreadsheetApp.getActiveSpreadsheet();
-	const sheet = ss.getSheetByName('PlanningToDate');
-
-	if (!sheet)
-	{
-		throw new Error('Sheet "PlanningToDate" not found.');
-	}
+	const sheet = ensureSheet('PlanningToDate', 241);
 
 	const row = year - 2020;
 	if (row < 1)
