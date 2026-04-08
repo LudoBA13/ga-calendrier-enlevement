@@ -111,6 +111,7 @@ function performCaching(sheet)
 	try
 	{
 		savePlanning(year, range);
+		saveMonths(year, range);
 		return { success: true, message: 'Le planning ' + year + ' a été mis en cache.' };
 	}
 	catch (error)

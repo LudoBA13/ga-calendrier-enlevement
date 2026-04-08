@@ -1,10 +1,11 @@
 /**
-* Stores planning data for a given year based on a range of dates.
+* Extracts data from the 20x12 calendar range for a given year.
 * @param {number} year The year for the planning.
 * @param {GoogleAppsScript.Spreadsheet.Range} range A 20x12 range containing dates.
-* @returns {string[]} An array of 366 codes representing each day of the year.
+* @param {function(Date, string): any} transformFn A function that returns the value for each day of the year.
+* @returns {any[]} An array of 366 values representing each day of the year.
 */
-function storePlanning(year, range)
+function extractDataFromCalendar(year, range, transformFn)
 {
 	const values = range.getValues();
 	const result = new Array(366).fill('');
@@ -35,11 +36,78 @@ function storePlanning(year, range)
 				continue;
 			}
 
-			result[dayIndex] = code;
+			result[dayIndex] = transformFn(cellValue, code);
 		}
 	}
 
 	return result;
+}
+
+/**
+* Stores planning data for a given year based on a range of dates.
+* @param {number} year The year for the planning.
+* @param {GoogleAppsScript.Spreadsheet.Range} range A 20x12 range containing dates.
+* @returns {string[]} An array of 366 codes representing each day of the year.
+*/
+function storePlanning(year, range)
+{
+	return extractDataFromCalendar(year, range, (date, code) => code);
+}
+
+/**
+* Extracts the month numbers for the days of the year present in the calendar.
+* @param {number} year The year for the planning.
+* @param {GoogleAppsScript.Spreadsheet.Range} range A 20x12 range containing dates.
+* @returns {number[]} An array of 366 month numbers.
+*/
+function storeMonths(year, range)
+{
+	return extractDataFromCalendar(year, range, (date) => date.getMonth() + 1);
+}
+
+/**
+ * Saves data for a given year into a specific sheet.
+ * @param {number} year The year to store.
+ * @param {any[]} data The data to store.
+ * @param {string} sheetName The name of the sheet.
+ * @param {string} label Label for logging.
+ */
+function saveDataToSheet(year, data, sheetName, label)
+{
+	const ss = SpreadsheetApp.getActiveSpreadsheet();
+	let sheet = ss.getSheetByName(sheetName);
+
+	if (!sheet)
+	{
+		sheet = ss.insertSheet(sheetName);
+	}
+	const row = year - 2020;
+	if (row < 1)
+	{
+		throw new Error('Year must be greater than 2020.');
+	}
+
+	// Check existing data to avoid unnecessary writes
+	const lastRow = sheet.getLastRow();
+	if (row <= lastRow)
+	{
+		const existingRange = sheet.getRange(row, 1, 1, 367);
+		const existingValues = existingRange.getValues()[0];
+
+		// Check if year matches AND all data match
+		if (existingValues[0] === year && JSON.stringify(data) === JSON.stringify(existingValues.slice(1)))
+		{
+			console.log(label + ' for ' + year + ' is already up to date. Skipping write.');
+			return;
+		}
+	}
+
+	// Write the year in column A
+	sheet.getRange(row, 1).setValue(year);
+
+	// Write the 366 codes in columns B to ... (366 columns starting from column 2)
+	sheet.getRange(row, 2, 1, 366).setValues([data]);
+	console.log(label + ' for ' + year + ' updated in the sheet.');
 }
 
 /**
@@ -50,34 +118,16 @@ function storePlanning(year, range)
 function savePlanning(year, range)
 {
 	const codes = storePlanning(year, range);
-	const ss = SpreadsheetApp.getActiveSpreadsheet();
-	let sheet = ss.getSheetByName('DateToPlanning');
+	saveDataToSheet(year, codes, 'DateToPlanning', 'Calendar codes');
+}
 
-	if (!sheet)
-	{
-		sheet = ss.insertSheet('DateToPlanning');
-	}
-	const row = year - 2020;
-	if (row < 1)
-	{
-		throw new Error('Year must be greater than 2020.');
-	}
-
-	// Check existing data to avoid unnecessary writes
-	const existingRange = sheet.getRange(row, 1, 1, 367);
-	const existingValues = existingRange.getValues()[0];
-
-	// Check if year matches AND all codes match
-	if (existingValues[0] === year && JSON.stringify(codes) === JSON.stringify(existingValues.slice(1)))
-	{
-		console.log('Calendar for ' + year + ' is already up to date. Skipping write.');
-		return;
-	}
-
-	// Write the year in column A
-	sheet.getRange(row, 1).setValue(year);
-
-	// Write the 366 codes in columns B to ... (366 columns starting from column 2)
-	sheet.getRange(row, 2, 1, 366).setValues([codes]);
-	console.log('Calendar for ' + year + ' updated in the sheet.');
+/**
+ * Stores the month data into the 'DateToPlanningMonth' sheet.
+ * @param {number} year The year to store.
+ * @param {GoogleAppsScript.Spreadsheet.Range} range The source range of dates.
+ */
+function saveMonths(year, range)
+{
+	const months = storeMonths(year, range);
+	saveDataToSheet(year, months, 'DateToPlanningMonth', 'Calendar months');
 }
