@@ -7,8 +7,42 @@ function onOpen()
 	const ui = SpreadsheetApp.getUi();
 	ui.createMenu('Calendrier')
 		.addItem('Créer un nouveau calendrier', 'createNewCalendar')
-		.addItem('Mettre en cache', 'cacheCurrentPlanning')
+		.addItem('Mettre ce calendrier en cache', 'cacheCurrentPlanning')
+		.addItem('Mettre tous les calendriers en cache', 'cacheAllPlannings')
 		.addToUi();
+}
+
+/**
+ * Caches all planning sheets found in the spreadsheet.
+ */
+function cacheAllPlannings()
+{
+	const ui = SpreadsheetApp.getUi();
+	const ss = SpreadsheetApp.getActiveSpreadsheet();
+	const sheets = ss.getSheets();
+	const results = [];
+
+	sheets.forEach((sheet) =>
+	{
+		const sheetName = sheet.getName();
+		if (/^Calendrier20\d+$/.test(sheetName))
+		{
+			const result = performCaching(sheet);
+			if (!result.success)
+			{
+				results.push(sheetName + ' : ' + result.message);
+			}
+		}
+	});
+
+	if (results.length === 0)
+	{
+		ui.alert('Succès', 'Tous les calendriers ont été mis en cache avec succès.', ui.ButtonSet.OK);
+	}
+	else
+	{
+		ui.alert('Erreur', 'Certains calendriers n\'ont pas pu être mis en cache :\n' + results.join('\n'), ui.ButtonSet.OK);
+	}
 }
 
 function createNewCalendar()
