@@ -3,7 +3,8 @@ const yearMonthCache = {};
 const dayPlanningCache = {};
 const dayMonthCache = {};
 const planningDateCache = {};
-const planningIdx = {"1Lu":0,"1Ma":1,"1Me":2,"1Je":3,"1Ve":4,"2Lu":5,"2Ma":6,"2Me":7,"2Je":8,"2Ve":9,"3Lu":10,"3Ma":11,"3Me":12,"3Je":13,"3Ve":14,"4Lu":15,"4Ma":16,"4Me":17,"4Je":18,"4Ve":19}
+const planningIdx = {"1Lu":0,"1Ma":1,"1Me":2,"1Je":3,"1Ve":4,"2Lu":5,"2Ma":6,"2Me":7,"2Je":8,"2Ve":9,"3Lu":10,"3Ma":11,"3Me":12,"3Je":13,"3Ve":14,"4Lu":15,"4Ma":16,"4Me":17,"4Je":18,"4Ve":19};
+const planningToTick = {"1Lu":11,"1Ma":12,"1Me":13,"1Je":14,"1Ve":15,"2Lu":21,"2Ma":22,"2Me":23,"2Je":24,"2Ve":25,"3Lu":31,"3Ma":32,"3Me":33,"3Je":34,"3Ve":35,"4Lu":41,"4Ma":42,"4Me":43,"4Je":44,"4Ve":45};
 
 /**
  * Ensures a sheet exists, is correctly sized, and contains an IMPORTRANGE formula.
@@ -147,6 +148,28 @@ function PLANNING_TO_DATE(code, year, month)
 }
 
 /**
+ * Custom function to get the tick for a date or range of dates.
+ * @param {Date|Array<Date>} input The date or range of dates.
+ * @returns {number|Array<number>} The tick or array of ticks.
+ * @customfunction
+ */
+function DATE_TO_TICK(input)
+{
+	if (Array.isArray(input))
+	{
+		return input.map(function(row)
+		{
+			return row.map(function(cell)
+			{
+				return cell instanceof Date ? dateToTick(cell) : '';
+			});
+		});
+	}
+
+	return input instanceof Date ? dateToTick(input) : '';
+}
+
+/**
  * Custom function to get planning code for a date or range of dates.
  * @param {Date|Array<Date>} input The date or range of dates.
  * @returns {string|Array<string>} The planning code or array of codes.
@@ -240,4 +263,19 @@ function dateToPlanning(date)
 
 	dayPlanningCache[time] = code;
 	return code;
+}
+
+/**
+ * Gets the tick for a specific date.
+ * @param {Date} date The date.
+ * @returns {number|string} The tick or empty string.
+ */
+function dateToTick(date)
+{
+	const year = date.getFullYear() % 100;
+	const month = dateToMonthNum(date) || 0;
+	const planning = dateToPlanning(date);
+	const tickValue = planningToTick[planning] || 0;
+
+	return year * 10000 + month * 100 + tickValue;
 }
