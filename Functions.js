@@ -1,8 +1,22 @@
+/**
+ * Tick Encoding Scheme: YYMMWDT
+ * ----------------------------
+ * A "tick" is a numerical representation of a specific planning day:
+ * - YY: Year (last two digits, e.g., 26 for 2026) -> Multiplier 100,000
+ * - MM: Month (1-12) -> Multiplier 1,000
+ * - W:  Week (1-4) -> Multiplier 100
+ * - D:  Day (1:Lu, 2:Ma, 3:Me, 4:Je, 5:Ve) -> Multiplier 10
+ * - T:  Timeslot (1:Md, 2:Mf, 3:Ap)
+ *
+ * Example: 2604110 represents 2026, April, Week 1, Monday (Lu).
+ */
+
 const yearPlanningCache = {};
 const yearMonthCache = {};
 const dayPlanningCache = {};
 const dayMonthCache = {};
 const planningDateCache = {};
+const yearPlanningDateMapCache = {};
 const planningIdx = {"1Lu":0,"1Ma":1,"1Me":2,"1Je":3,"1Ve":4,"2Lu":5,"2Ma":6,"2Me":7,"2Je":8,"2Ve":9,"3Lu":10,"3Ma":11,"3Me":12,"3Je":13,"3Ve":14,"4Lu":15,"4Ma":16,"4Me":17,"4Je":18,"4Ve":19};
 const planningToTick = {"1Lu":110,"1Ma":120,"1Me":130,"1Je":140,"1Ve":150,"2Lu":210,"2Ma":220,"2Me":230,"2Je":240,"2Ve":250,"3Lu":310,"3Ma":320,"3Me":330,"3Je":340,"3Ve":350,"4Lu":410,"4Ma":420,"4Me":430,"4Je":440,"4Ve":450};
 
@@ -96,6 +110,11 @@ function getDateToPlanningMonthMap(year)
  */
 function getPlanningToDateMap(year)
 {
+	if (yearPlanningDateMapCache[year])
+	{
+		return yearPlanningDateMapCache[year];
+	}
+
 	const sheet = ensureSheet('PlanningToDate', 241);
 
 	const row = year - 2020;
@@ -112,6 +131,8 @@ function getPlanningToDateMap(year)
 	{
 		chunks.push(values.slice(i * 20, (i + 1) * 20));
 	}
+
+	yearPlanningDateMapCache[year] = chunks;
 	return chunks;
 }
 
@@ -167,6 +188,38 @@ function DATE_TO_TICK(input)
 	}
 
 	return input instanceof Date ? dateToTick(input) : '';
+}
+
+/**
+ * Custom function to get the date for a tick or range of ticks.
+ * @param {number|Array<number>} input The tick or range of ticks.
+ * @returns {Date|Array<Date>|string} The date, array of dates, or empty string.
+ * @customfunction
+ */
+function TICK_TO_DATE(input)
+{
+	if (Array.isArray(input))
+	{
+		return input.map(function(row)
+		{
+			return row.map(function(cell)
+			{
+				if (cell === '' || cell === null || cell === undefined)
+				{
+					return '';
+				}
+				const tick = parseInt(cell);
+				return !isNaN(tick) ? tickToDate(tick) : '';
+			});
+		});
+	}
+
+	if (input === '' || input === null || input === undefined)
+	{
+		return '';
+	}
+	const tick = parseInt(input);
+	return !isNaN(tick) ? tickToDate(tick) : '';
 }
 
 /**
@@ -278,4 +331,34 @@ function dateToTick(date)
 	const tickValue = planningToTick[planning] || 0;
 
 	return year * 100000 + month * 1000 + tickValue;
+}
+
+/**
+ * Gets the date for a specific tick.
+ * @param {number} tick The tick.
+ * @returns {Date|string} The date or empty string.
+ */
+function tickToDate(tick)
+{
+	if (!tick || isNaN(tick))
+	{
+		throw new Error('Invalid tick value: ' + tick);
+	}
+
+	const year = 2000 + Math.floor(tick / 100000);
+	const month = Math.floor((tick % 100000) / 1000);
+	const tickValue = tick % 1000;
+
+	const week = Math.floor(tickValue / 100);
+	const dayDigit = Math.floor((tickValue % 100) / 10);
+	const dayCode = { 1: 'Lu', 2: 'Ma', 3: 'Me', 4: 'Je', 5: 'Ve' }[dayDigit] || '??';
+
+	if (dayCode === '??')
+	{
+		throw new Error('Invalid day digit in tick: ' + tick);
+	}
+
+	const code = week + dayCode;
+
+	return PLANNING_TO_DATE(code, year, month);
 }
