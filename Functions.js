@@ -285,7 +285,7 @@ function dateToMonthNum(date)
 		yearMonthCache[year] = getDateToPlanningMonthMap(year);
 	}
 
-	const dayOfYear = parseInt(Utilities.formatDate(date, Session.getScriptTimeZone(), 'D')) - 1;
+	const dayOfYear = getDayOfYear(date);
 	const monthNum = yearMonthCache[year][dayOfYear];
 
 	dayMonthCache[time] = monthNum;
@@ -311,11 +311,24 @@ function dateToPlanning(date)
 		yearPlanningCache[year] = getDateToPlanningMap(year);
 	}
 
-	const dayOfYear = parseInt(Utilities.formatDate(date, Session.getScriptTimeZone(), 'D')) - 1;
+	const dayOfYear = getDayOfYear(date);
 	const code = yearPlanningCache[year][dayOfYear];
 
 	dayPlanningCache[time] = code;
 	return code;
+}
+
+/**
+ * Gets the day of the year (0-365) for a given date.
+ * @param {Date} date The date.
+ * @returns {number} The day of the year.
+ */
+function getDayOfYear(date)
+{
+	const start = new Date(date.getFullYear(), 0, 0);
+	const diff = date - start;
+	const oneDay = 1000 * 60 * 60 * 24;
+	return Math.floor(diff / oneDay) - 1;
 }
 
 /**

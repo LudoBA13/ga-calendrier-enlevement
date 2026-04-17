@@ -9,7 +9,6 @@ function extractDataFromCalendar(year, range, transformFn)
 {
 	const values = range.getValues();
 	const result = new Array(366).fill('');
-	const timeZone = Session.getScriptTimeZone();
 	const dayCodes = ['Lu', 'Ma', 'Me', 'Je', 'Ve'];
 
 	for (let r = 0; r < 20; r++)
@@ -27,9 +26,8 @@ function extractDataFromCalendar(year, range, transformFn)
 				continue;
 			}
 
-			// Use 'D' format for day in year (1-366). Map to 0-365 for index.
-			const dayOfYear = Utilities.formatDate(cellValue, timeZone, 'D');
-			const dayIndex = parseInt(dayOfYear) - 1;
+			// Use pure JS for day in year (0-365).
+			const dayIndex = getDayOfYear(cellValue);
 
 			if (dayIndex < 0 || dayIndex >= 366)
 			{
