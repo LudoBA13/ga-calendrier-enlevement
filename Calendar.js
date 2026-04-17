@@ -18,30 +18,14 @@ function onOpen()
 function cacheAllPlannings()
 {
 	const ui = SpreadsheetApp.getUi();
-	const ss = SpreadsheetApp.getActiveSpreadsheet();
-	const sheets = ss.getSheets();
-	const results = [];
-
-	sheets.forEach((sheet) =>
+	try
 	{
-		const sheetName = sheet.getName();
-		if (/^Calendrier20\d+$/.test(sheetName))
-		{
-			const result = performCaching(sheet);
-			if (!result.success)
-			{
-				results.push(sheetName + ' : ' + result.message);
-			}
-		}
-	});
-
-	if (results.length === 0)
-	{
+		syncAllCaches();
 		ui.alert('Succès', 'Tous les calendriers ont été mis en cache avec succès.', ui.ButtonSet.OK);
 	}
-	else
+	catch (error)
 	{
-		ui.alert('Erreur', 'Certains calendriers n\'ont pas pu être mis en cache :\n' + results.join('\n'), ui.ButtonSet.OK);
+		ui.alert('Erreur', 'Une erreur est survenue lors de la mise en cache groupée : ' + error.message, ui.ButtonSet.OK);
 	}
 }
 
@@ -152,36 +136,6 @@ function performCaching(sheet)
 	{
 		return { success: false, message: 'Une erreur est survenue lors de la mise en cache : ' + error.message };
 	}
-}
-
-/**
- * Finds the 20x12 calendar range in the given sheet.
- * @param {GoogleAppsScript.Spreadsheet.Sheet} sheet The sheet to search in.
- * @returns {GoogleAppsScript.Spreadsheet.Range|null} The range or null if not found.
- */
-function getCalendarRange(sheet)
-{
-	// Dynamically locate the first row in column A that matches /^1.*lundi$/
-	const lastRow = sheet.getLastRow();
-	const colAValues = sheet.getRange(1, 1, lastRow).getDisplayValues();
-	let startRow = -1;
-
-	for (let i = 0; i < lastRow; i++)
-	{
-		if (/^1.*lundi$/.test(colAValues[i][0]))
-		{
-			startRow = i + 1;
-			break;
-		}
-	}
-
-	if (startRow === -1)
-	{
-		return null;
-	}
-
-	// Range starting at Column B of that row, 20 rows by 12 columns
-	return sheet.getRange(startRow, 2, 20, 12);
 }
 
 /**

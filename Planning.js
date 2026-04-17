@@ -91,13 +91,73 @@ function storeMonths(year, range)
 }
 
 /**
- * Saves data for a given year into a specific sheet.
- * @param {number} year The year to store.
- * @param {any[]} data The data to store.
+ * Finds the 20x12 calendar range in the given sheet.
+ * @param {GoogleAppsScript.Spreadsheet.Sheet} sheet The sheet to search in.
+ * @returns {GoogleAppsScript.Spreadsheet.Range|null} The range or null if not found.
+ */
+function getCalendarRange(sheet)
+{
+	// Dynamically locate the first row in column A that matches /^1.*lundi$/
+	const lastRow = sheet.getLastRow();
+	if (lastRow < 1) return null;
+	const colAValues = sheet.getRange(1, 1, lastRow).getDisplayValues();
+	let startRow = -1;
+
+	for (let i = 0; i < lastRow; i++)
+	{
+		if (/^1.*lundi$/.test(colAValues[i][0]))
+		{
+			startRow = i + 1;
+			break;
+		}
+	}
+
+	if (startRow === -1)
+	{
+		return null;
+	}
+
+	// Range starting at Column B of that row, 20 rows by 12 columns
+	return sheet.getRange(startRow, 2, 20, 12);
+}
+
+/**
+ * Synchronizes all caches by processing all 'CalendrierX' sheets.
+ */
+function syncAllCaches()
+{
+	const ss = SpreadsheetApp.getActiveSpreadsheet();
+	const sheets = ss.getSheets();
+	const planningData = {};
+	const monthData = {};
+
+	sheets.forEach((sheet) =>
+	{
+		const sheetName = sheet.getName();
+		const match = sheetName.match(/^Calendrier(20\d+)$/);
+		if (match)
+		{
+			const year = parseInt(match[1]);
+			const range = getCalendarRange(sheet);
+			if (range)
+			{
+				planningData[year] = storePlanning(year, range);
+				monthData[year] = storeMonths(year, range);
+			}
+		}
+	});
+
+	saveBulkDataToSheet(planningData, 'DateToPlanning', 'Calendar codes');
+	saveBulkDataToSheet(monthData, 'DateToPlanningMonth', 'Calendar months');
+}
+
+/**
+ * Saves multiple years of data to a specific sheet in bulk, pruning unchanged rows.
+ * @param {Object.<number, any[]>} newDataMap A map of year to data array.
  * @param {string} sheetName The name of the sheet.
  * @param {string} label Label for logging.
  */
-function saveDataToSheet(year, data, sheetName, label)
+function saveBulkDataToSheet(newDataMap, sheetName, label)
 {
 	const ss = SpreadsheetApp.getActiveSpreadsheet();
 	let sheet = ss.getSheetByName(sheetName);
@@ -106,33 +166,63 @@ function saveDataToSheet(year, data, sheetName, label)
 	{
 		sheet = ss.insertSheet(sheetName);
 	}
-	const row = year - 2020;
-	if (row < 1)
+
+	const years = Object.keys(newDataMap).map(Number).sort((a, b) => a - b);
+	if (years.length === 0) return;
+
+	const maxYear = years[years.length - 1];
+	const expectedLastRow = maxYear - 2020;
+
+	// Ensure sheet has enough rows
+	const currentMaxRows = sheet.getMaxRows();
+	if (currentMaxRows < expectedLastRow)
 	{
-		throw new Error('Year must be greater than 2020.');
+		sheet.insertRowsAfter(currentMaxRows, expectedLastRow - currentMaxRows);
 	}
 
-	// Check existing data to avoid unnecessary writes
+	// Read existing data
 	const lastRow = sheet.getLastRow();
-	if (row <= lastRow)
-	{
-		const existingRange = sheet.getRange(row, 1, 1, 367);
-		const existingValues = existingRange.getValues()[0];
+	const existingData = lastRow > 0 ? sheet.getRange(1, 1, lastRow, 367).getValues() : [];
 
-		// Check if year matches AND all data match
-		if (existingValues[0] === year && JSON.stringify(data) === JSON.stringify(existingValues.slice(1)))
+	let updateCount = 0;
+
+	for (const year of years)
+	{
+		const rowIdx = year - 2020 - 1; // 0-based index for existingData array
+		const data = newDataMap[year];
+		const rowNum = year - 2020;
+
+		if (rowNum < 1) continue;
+
+		let shouldUpdate = true;
+
+		if (rowIdx < existingData.length)
 		{
-			console.log(label + ' for ' + year + ' is already up to date. Skipping write.');
-			return;
+			const existingRow = existingData[rowIdx];
+			if (existingRow[0] === year && JSON.stringify(data) === JSON.stringify(existingRow.slice(1)))
+			{
+				shouldUpdate = false;
+			}
+		}
+
+		if (shouldUpdate)
+		{
+			// Write the year in column A
+			sheet.getRange(rowNum, 1).setValue(year);
+			// Write the 366 codes in columns B to ... (366 columns starting from column 2)
+			sheet.getRange(rowNum, 2, 1, 366).setValues([data]);
+			updateCount++;
 		}
 	}
 
-	// Write the year in column A
-	sheet.getRange(row, 1).setValue(year);
-
-	// Write the 366 codes in columns B to ... (366 columns starting from column 2)
-	sheet.getRange(row, 2, 1, 366).setValues([data]);
-	console.log(label + ' for ' + year + ' updated in the sheet.');
+	if (updateCount > 0)
+	{
+		console.log(label + ': ' + updateCount + ' years updated.');
+	}
+	else
+	{
+		console.log(label + ': All up to date. Skipping write.');
+	}
 }
 
 /**
@@ -143,7 +233,9 @@ function saveDataToSheet(year, data, sheetName, label)
 function savePlanning(year, range)
 {
 	const codes = storePlanning(year, range);
-	saveDataToSheet(year, codes, 'DateToPlanning', 'Calendar codes');
+	const dataMap = {};
+	dataMap[year] = codes;
+	saveBulkDataToSheet(dataMap, 'DateToPlanning', 'Calendar codes');
 }
 
 /**
@@ -154,5 +246,7 @@ function savePlanning(year, range)
 function saveMonths(year, range)
 {
 	const months = storeMonths(year, range);
-	saveDataToSheet(year, months, 'DateToPlanningMonth', 'Calendar months');
+	const dataMap = {};
+	dataMap[year] = months;
+	saveBulkDataToSheet(dataMap, 'DateToPlanningMonth', 'Calendar months');
 }
