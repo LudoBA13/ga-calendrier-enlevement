@@ -99,7 +99,10 @@ function getCalendarRange(sheet)
 {
 	// Dynamically locate the first row in column A that matches /^1.*lundi$/
 	const lastRow = sheet.getLastRow();
-	if (lastRow < 1) return null;
+	if (lastRow < 1)
+	{
+		return null;
+	}
 	const colAValues = sheet.getRange(1, 1, lastRow).getDisplayValues();
 	let startRow = -1;
 
@@ -168,7 +171,10 @@ function saveBulkDataToSheet(newDataMap, sheetName, label)
 	}
 
 	const years = Object.keys(newDataMap).map(Number).sort((a, b) => a - b);
-	if (years.length === 0) return;
+	if (years.length === 0)
+	{
+		return;
+	}
 
 	const maxYear = years[years.length - 1];
 	const expectedLastRow = maxYear - 2020;
@@ -192,7 +198,10 @@ function saveBulkDataToSheet(newDataMap, sheetName, label)
 		const data = newDataMap[year];
 		const rowNum = year - 2020;
 
-		if (rowNum < 1) continue;
+		if (rowNum < 1)
+		{
+			continue;
+		}
 
 		let shouldUpdate = true;
 
