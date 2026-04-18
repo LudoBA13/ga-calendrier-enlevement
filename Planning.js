@@ -1,11 +1,9 @@
 /**
-* Extracts data from the 20x12 calendar range for a given year.
-* @param {number} year The year for the planning.
+* Extracts dates from the 20x12 calendar range.
 * @param {GoogleAppsScript.Spreadsheet.Range} range A 20x12 range containing dates.
-* @param {function(Date, string): any} transformFn A function that returns the value for each day of the year.
 * @returns {any[]} An array of 366 values representing each day of the year.
 */
-function extractDataFromCalendar(year, range, transformFn)
+function extractCalendarFromRange(range)
 {
 	const values = range.getValues();
 	const result = new Array(366).fill('');
@@ -21,7 +19,7 @@ function extractDataFromCalendar(year, range, transformFn)
 		{
 			const cellValue = values[r][c];
 
-			if (!(cellValue instanceof Date) || cellValue.getFullYear() !== year)
+			if (!(cellValue instanceof Date))
 			{
 				continue;
 			}
@@ -34,7 +32,7 @@ function extractDataFromCalendar(year, range, transformFn)
 				continue;
 			}
 
-			result[dayIndex] = transformFn(cellValue, code);
+			result[dayIndex] = code;
 		}
 	}
 
@@ -49,7 +47,7 @@ function extractDataFromCalendar(year, range, transformFn)
 */
 function storePlanning(year, range)
 {
-	return extractDataFromCalendar(year, range, (date, code) => code);
+	return extractCalendarFromRange(range);
 }
 
 /**
