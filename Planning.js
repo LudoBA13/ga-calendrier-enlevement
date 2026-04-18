@@ -1,8 +1,8 @@
 /**
-* Extracts dates from the 20x12 calendar range.
-* @param {GoogleAppsScript.Spreadsheet.Range} range A 20x12 range containing dates.
-* @returns {any[]} An array of 366 values representing each day of the year.
-*/
+ * Extracts dates from the 20x12 calendar range.
+ * @param {GoogleAppsScript.Spreadsheet.Range} range A 20x12 range containing dates.
+ * @returns {any[]} An array of 366 values representing each day of the year.
+ */
 function extractCalendarFromRange(range)
 {
 	const values = range.getValues();
@@ -40,22 +40,22 @@ function extractCalendarFromRange(range)
 }
 
 /**
-* Stores planning data for a given year based on a range of dates.
-* @param {number} year The year for the planning.
-* @param {GoogleAppsScript.Spreadsheet.Range} range A 20x12 range containing dates.
-* @returns {string[]} An array of 366 codes representing each day of the year.
-*/
+ * Stores planning data for a given year based on a range of dates.
+ * @param {number} year The year for the planning.
+ * @param {GoogleAppsScript.Spreadsheet.Range} range A 20x12 range containing dates.
+ * @returns {string[]} An array of 366 codes representing each day of the year.
+ */
 function storePlanning(year, range)
 {
 	return extractCalendarFromRange(range);
 }
 
 /**
-* Extracts the month numbers for the days of the year present in the calendar.
-* @param {number} year The year for the planning.
-* @param {GoogleAppsScript.Spreadsheet.Range} range A 20x12 range containing dates.
-* @returns {number[]} An array of 366 month numbers.
-*/
+ * Extracts the month numbers for the days of the year present in the calendar.
+ * @param {number} year The year for the planning.
+ * @param {GoogleAppsScript.Spreadsheet.Range} range A 20x12 range containing dates.
+ * @returns {number[]} An array of 366 month numbers.
+ */
 function storeMonths(year, range)
 {
 	const dates = range.getValues()[0];

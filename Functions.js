@@ -17,8 +17,8 @@ const dayPlanningCache = {};
 const dayMonthCache = {};
 const planningDateCache = {};
 const yearPlanningDateMapCache = {};
-const planningIdx = {"1Lu":0,"1Ma":1,"1Me":2,"1Je":3,"1Ve":4,"2Lu":5,"2Ma":6,"2Me":7,"2Je":8,"2Ve":9,"3Lu":10,"3Ma":11,"3Me":12,"3Je":13,"3Ve":14,"4Lu":15,"4Ma":16,"4Me":17,"4Je":18,"4Ve":19};
-const planningToTick = {"1Lu":110,"1Ma":120,"1Me":130,"1Je":140,"1Ve":150,"2Lu":210,"2Ma":220,"2Me":230,"2Je":240,"2Ve":250,"3Lu":310,"3Ma":320,"3Me":330,"3Je":340,"3Ve":350,"4Lu":410,"4Ma":420,"4Me":430,"4Je":440,"4Ve":450};
+const planningIdx = {'1Lu':0,'1Ma':1,'1Me':2,'1Je':3,'1Ve':4,'2Lu':5,'2Ma':6,'2Me':7,'2Je':8,'2Ve':9,'3Lu':10,'3Ma':11,'3Me':12,'3Je':13,'3Ve':14,'4Lu':15,'4Ma':16,'4Me':17,'4Je':18,'4Ve':19};
+const planningToTick = {'1Lu':110,'1Ma':120,'1Me':130,'1Je':140,'1Ve':150,'2Lu':210,'2Ma':220,'2Me':230,'2Je':240,'2Ve':250,'3Lu':310,'3Ma':320,'3Me':330,'3Je':340,'3Ve':350,'4Lu':410,'4Ma':420,'4Me':430,'4Je':440,'4Ve':450};
 
 /**
  * Ensures a sheet exists, is correctly sized, and contains an IMPORTRANGE formula.
