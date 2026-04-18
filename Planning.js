@@ -89,7 +89,8 @@ function storeMonths(year, range)
 /**
  * Finds the 20x12 calendar range in the given sheet.
  * @param {GoogleAppsScript.Spreadsheet.Sheet} sheet The sheet to search in.
- * @returns {GoogleAppsScript.Spreadsheet.Range|null} The range or null if not found.
+ * @returns {GoogleAppsScript.Spreadsheet.Range} The range.
+ * @throws {Error} If the range is not found.
  */
 function getCalendarRange(sheet)
 {
@@ -97,7 +98,7 @@ function getCalendarRange(sheet)
 	const lastRow = sheet.getLastRow();
 	if (lastRow < 1)
 	{
-		return null;
+		throw new Error('La feuille est vide ou ne peut pas être lue.');
 	}
 	const colAValues = sheet.getRange(1, 1, lastRow).getDisplayValues();
 	let startRow = -1;
@@ -113,7 +114,7 @@ function getCalendarRange(sheet)
 
 	if (startRow === -1)
 	{
-		return null;
+		throw new Error('Impossible de trouver le début du planning (une cellule en colonne A commençant par "1" et finissant par "lundi").');
 	}
 
 	// Range starting at Column B of that row, 20 rows by 12 columns
@@ -137,11 +138,15 @@ function syncAllCaches()
 		if (match)
 		{
 			const year = parseInt(match[1]);
-			const range = getCalendarRange(sheet);
-			if (range)
+			try
 			{
+				const range = getCalendarRange(sheet);
 				planningData[year] = storePlanning(year, range);
 				monthData[year] = storeMonths(year, range);
+			}
+			catch (error)
+			{
+				console.error('Erreur lors du traitement de ' + sheetName + ' : ' + error.message);
 			}
 		}
 	});

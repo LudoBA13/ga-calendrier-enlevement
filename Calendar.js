@@ -72,10 +72,17 @@ function createNewCalendar()
 	const planningSheet = ss.getSheetByName('PlanningToDate');
 	if (planningSheet)
 	{
-		const row = year - 2020;
-		const range = getCalendarRange(sheet);
-		planningSheet.getRange(row, 1).setValue(year);
-		planningSheet.getRange(row, 2).setFormula('=TOROW(\'' + sheetName + '\'!' + range.getA1Notation() + '; 0; 1)');
+		try
+		{
+			const row = year - 2020;
+			const range = getCalendarRange(sheet);
+			planningSheet.getRange(row, 1).setValue(year);
+			planningSheet.getRange(row, 2).setFormula('=TOROW(\'' + sheetName + '\'!' + range.getA1Notation() + '; 0; 1)');
+		}
+		catch (error)
+		{
+			ui.alert('Erreur', 'Impossible d\'ajouter l\'année à la feuille \'PlanningToDate\' : ' + error.message, ui.ButtonSet.OK);
+		}
 	}
 
 	ss.setActiveSheet(sheet);
@@ -119,15 +126,10 @@ function performCaching(sheet)
 	}
 
 	const year = parseInt(match[1]);
-	const range = getCalendarRange(sheet);
-
-	if (!range)
-	{
-		return { success: false, message: 'Impossible de trouver le début du planning (une cellule en colonne A commençant par "1" et finissant par "lundi").' };
-	}
 
 	try
 	{
+		const range = getCalendarRange(sheet);
 		savePlanning(year, range);
 		saveMonths(year, range);
 		return { success: true, message: 'Le planning ' + year + ' a été mis en cache.' };
