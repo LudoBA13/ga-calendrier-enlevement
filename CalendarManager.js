@@ -100,4 +100,63 @@ class CalendarManager
 
 		return flattened;
 	}
+
+	/**
+	 * Converts the calendar dates into a map of year to 366-element tick arrays.
+	 * @param {Map<number, GoogleAppsScript.Spreadsheet.Sheet>} calendarMap Map of year to sheet.
+	 * @returns {Map<number, (number|null)[]>} Map of year to 366-element array of ticks.
+	 */
+	convertCalendarsToTicks(calendarMap)
+	{
+		const resultMap = new Map;
+
+		for (const [yearKey, sheet] of calendarMap)
+		{
+			const yy = yearKey % 100;
+			const range = this.getCalendarRange(sheet);
+			const dates = this.getPlanningDatesFromCalendarRange(range);
+
+			for (let i = 0; i < dates.length; i++)
+			{
+				const date = dates[i];
+				if (!date)
+				{
+					continue;
+				}
+
+				const mm = Math.floor(i / 20) + 1;
+				const row = i % 20;
+				const w = Math.floor(row / 5) + 1;
+				const d = (row % 5) + 1;
+				const wdt = (w * 100) + (d * 10);
+				const tick = (yy * 100000) + (mm * 1000) + wdt;
+
+				const targetYear = date.getFullYear();
+				const dayIndex = this._getDayOfYear(date);
+
+				if (!resultMap.has(targetYear))
+				{
+					resultMap.set(targetYear, new Array(366).fill(null));
+				}
+
+				resultMap.get(targetYear)[dayIndex] = tick;
+			}
+		}
+
+		return resultMap;
+	}
+
+	/**
+	 * Gets the day of the year (0-365) for a given date.
+	 * @param {Date} date The date.
+	 * @returns {number} The day of the year.
+	 * @private
+	 */
+	_getDayOfYear(date)
+	{
+		const start = new Date(date.getFullYear(), 0, 0);
+		const diff = date - start;
+		const oneDay = 1000 * 60 * 60 * 24;
+		return Math.floor(diff / oneDay) - 1;
+	}
 }
