@@ -137,25 +137,20 @@ class CalendarStorage
 				continue;
 			}
 
-			let shouldUpdate = true;
-
 			if (rowIdx < existingData.length)
 			{
 				const existingRow = existingData[rowIdx];
 				if (existingRow[0] === year && JSON.stringify(data) === JSON.stringify(existingRow.slice(1)))
 				{
-					shouldUpdate = false;
+					continue;
 				}
 			}
 
-			if (shouldUpdate)
-			{
-				// Write the year in column A
-				sheet.getRange(rowNum, 1).setValue(year);
-				// Write the 366 values in columns B to ...
-				sheet.getRange(rowNum, 2, 1, 366).setValues([data]);
-				updateCount++;
-			}
+			// Write the year in column A
+			sheet.getRange(rowNum, 1).setValue(year);
+			// Write the 366 values in columns B to ...
+			sheet.getRange(rowNum, 2, 1, 366).setValues([data]);
+			updateCount++;
 		}
 
 		if (updateCount > 0)
