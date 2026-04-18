@@ -80,7 +80,7 @@ class CalendarManager
 	 * Flattens the 20x12 calendar range into a 240-element array.
 	 * Iterates through columns first (left to right), then rows (top to bottom).
 	 * @param {GoogleAppsScript.Spreadsheet.Range} range The 20x12 calendar range.
-	 * @returns {any[]} An array containing 240 elements.
+	 * @returns {(Date|null)[]} An array containing 240 elements (Date or null).
 	 */
 	getPlanningDatesFromCalendarRange(range)
 	{
