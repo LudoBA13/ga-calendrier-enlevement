@@ -128,8 +128,7 @@ class CalendarManager
 				const row = i % 20;
 				const w = Math.floor(row / 5) + 1;
 				const d = (row % 5) + 1;
-				const wdt = (w * 100) + (d * 10);
-				const tick = (yy * 100000) + (mm * 1000) + wdt;
+				const tick = (yy * 100000) + (mm * 1000) + (w * 100) + (d * 10);
 
 				const targetYear = date.getFullYear();
 				const dayIndex = this._getDayOfYear(date);
