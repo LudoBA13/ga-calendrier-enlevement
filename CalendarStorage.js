@@ -56,7 +56,7 @@ class CalendarStorage
 	_extractCalendarFromRange(range)
 	{
 		const values = range.getValues();
-		const result = new Array(366).fill('');
+		const result = new Array(366).fill(null);
 		const dayCodes = ['Lu', 'Ma', 'Me', 'Je', 'Ve'];
 
 		for (let r = 0; r < 20; r++)
@@ -129,13 +129,16 @@ class CalendarStorage
 		for (const year of years)
 		{
 			const rowIdx = year - 2020 - 1; // 0-based index for existingData array
-			const data = newDataMap[year];
+			const rawData = newDataMap[year];
 			const rowNum = year - 2020;
 
 			if (rowNum < 1)
 			{
 				continue;
 			}
+
+			// Normalize input: convert nulls to empty strings for storage and comparison
+			const data = rawData.map((val) => val === null ? '' : val);
 
 			if (rowIdx < existingData.length)
 			{
