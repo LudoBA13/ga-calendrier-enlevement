@@ -45,9 +45,9 @@ class CalendarStorage
 			}
 		}
 
-		const tickDataMap = calendarManager.convertCalendarsToTicks(calendarMap);
+		const dateToTickMap = calendarManager.convertCalendarsToTicks(calendarMap);
 
-		this._saveBulkDataToSheet(tickDataMap, 'DateToTick', 'Planning Ticks');
+		this._saveBulkDataToSheet(dateToTickMap, 'DateToTick', 'Planning Ticks');
 	}
 
 	/**

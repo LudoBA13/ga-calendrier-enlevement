@@ -142,7 +142,34 @@ class CalendarManager
 			}
 		}
 
+		this._fillGaps(resultMap);
 		return resultMap;
+	}
+
+
+	/**
+	 * Fills empty tick values with the latest tick plus 9, carrying over years.
+	 * @param {Map<number, (number|null)[]>} dateToTickMap Map of year to tick array.
+	 * @private
+	 */
+	_fillGaps(dateToTickMap)
+	{
+		let lastTick = null;
+
+		for (const ticks of dateToTickMap.values())
+		{
+			for (let i = 0; i < ticks.length; i++)
+			{
+				if (ticks[i] !== null)
+				{
+					lastTick = ticks[i];
+				}
+				else if (lastTick !== null)
+				{
+					ticks[i] = lastTick + 9;
+				}
+			}
+		}
 	}
 
 	/**
