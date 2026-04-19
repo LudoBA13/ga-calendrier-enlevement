@@ -1,4 +1,20 @@
 /**
+ * Storage Format: DateToPlanning & TickToDate
+ * ------------------------------------------
+ * Both sheets follow a consistent bulk storage layout:
+ * - Each row represents a full calendar year.
+ * - Row number: (year - 2020).
+ * - Column A: The year (e.g., 2026).
+ * - Columns B to NC (366 columns): Sequential data for each day of the year (0-365).
+ *
+ * Data Types:
+ * - DateToPlanning: Planning codes as strings (e.g., '1Lu', '2Ma', '3Me').
+ * - TickToDate: Planning ticks as numbers (e.g., 2604110).
+ *
+ * Empty cells are represented by empty strings in the sheet and null in JavaScript structures.
+ */
+
+/**
  * Manages the storage of calendar data into spreadsheet sheets.
  */
 class CalendarStorage
