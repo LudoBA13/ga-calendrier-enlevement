@@ -9,6 +9,7 @@ function onOpen()
 		.addItem('Créer un nouveau calendrier', 'createNewCalendar')
 		.addItem('Mettre ce calendrier en cache', 'cacheCurrentPlanning')
 		.addItem('Mettre tous les calendriers en cache', 'cacheAllPlannings')
+		.addItem('Rafraîchir tout le stockage', 'refreshAllStorage')
 		.addToUi();
 }
 
@@ -26,6 +27,29 @@ function cacheAllPlannings()
 	catch (error)
 	{
 		ui.alert('Erreur', 'Une erreur est survenue lors de la mise en cache groupée : ' + error.message, ui.ButtonSet.OK);
+	}
+}
+
+/**
+ * Refreshes all calendar storage including planning codes and ticks.
+ */
+function refreshAllStorage()
+{
+	const ui = SpreadsheetApp.getUi();
+	const ss = SpreadsheetApp.getActiveSpreadsheet();
+
+	try
+	{
+		const manager = new CalendarManager(ss);
+		const storage = new CalendarStorage(ss);
+
+		storage.refresh(manager);
+
+		ui.alert('Succès', 'Le stockage a été rafraîchi avec succès (Codes et Ticks).', ui.ButtonSet.OK);
+	}
+	catch (error)
+	{
+		ui.alert('Erreur', 'Une erreur est survenue lors du rafraîchissement du stockage : ' + error.message, ui.ButtonSet.OK);
 	}
 }
 
