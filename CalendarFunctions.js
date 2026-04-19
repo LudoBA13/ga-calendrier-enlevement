@@ -12,13 +12,12 @@
  */
 
 const yearPlanningCache = {};
-const yearMonthCache = {};
+const yearTickCache = {};
 const dayPlanningCache = {};
-const dayMonthCache = {};
+const dayTickCache = {};
 const planningDateCache = {};
 const yearPlanningDateMapCache = {};
 const planningIdx = {'1Lu':0,'1Ma':1,'1Me':2,'1Je':3,'1Ve':4,'2Lu':5,'2Ma':6,'2Me':7,'2Je':8,'2Ve':9,'3Lu':10,'3Ma':11,'3Me':12,'3Je':13,'3Ve':14,'4Lu':15,'4Ma':16,'4Me':17,'4Je':18,'4Ve':19};
-const planningToTick = {'1Lu':110,'1Ma':120,'1Me':130,'1Je':140,'1Ve':150,'2Lu':210,'2Ma':220,'2Me':230,'2Je':240,'2Ve':250,'3Lu':310,'3Ma':320,'3Me':330,'3Je':340,'3Ve':350,'4Lu':410,'4Ma':420,'4Me':430,'4Je':440,'4Ve':450};
 
 /**
  * Ensures a sheet exists, is correctly sized, and contains an IMPORTRANGE formula.
@@ -84,13 +83,13 @@ function getDateToPlanningMap(year)
 }
 
 /**
- * Gets the month map for a specific year from the 'DateToPlanningMonth' sheet.
+ * Gets the tick map for a specific year from the 'DateToTick' sheet.
  * @param {number} year The year to retrieve.
  * @returns {Array<number|string>} The values from columns B to NC for the given year.
  */
-function getDateToPlanningMonthMap(year)
+function getDateToTickMap(year)
 {
-	const sheet = ensureSheet('DateToPlanningMonth', 367);
+	const sheet = ensureSheet('DateToTick', 367);
 
 	const row = year - 2020;
 	if (row < 1)
@@ -245,54 +244,6 @@ function DATE_TO_PLANNING(input)
 }
 
 /**
- * Custom function to get month number for a date or range of dates.
- * @param {Date|Array<Date>} input The date or range of dates.
- * @returns {number|Array<number>} The month number or array of month numbers.
- * @customfunction
- */
-function DATE_TO_MONTH_NUM(input)
-{
-	if (Array.isArray(input))
-	{
-		return input.map(function(row)
-		{
-			return row.map(function(cell)
-			{
-				return cell instanceof Date ? dateToMonthNum(cell) : '';
-			});
-		});
-	}
-
-	return input instanceof Date ? dateToMonthNum(input) : '';
-}
-
-/**
- * Gets the month number for a specific date from the 'DateToPlanningMonth' sheet.
- * @param {Date} date The date.
- * @returns {number|string} The month number or empty string.
- */
-function dateToMonthNum(date)
-{
-	const time = date.getTime();
-	if (dayMonthCache[time])
-	{
-		return dayMonthCache[time];
-	}
-
-	const year = date.getFullYear();
-	if (!yearMonthCache[year])
-	{
-		yearMonthCache[year] = getDateToPlanningMonthMap(year);
-	}
-
-	const dayOfYear = getDayOfYear(date);
-	const monthNum = yearMonthCache[year][dayOfYear];
-
-	dayMonthCache[time] = monthNum;
-	return monthNum;
-}
-
-/**
  * Gets the planning code for a specific date.
  * @param {Date} date The date.
  * @returns {string} The planning code.
@@ -338,12 +289,23 @@ function getDayOfYear(date)
  */
 function dateToTick(date)
 {
-	const year = date.getFullYear() % 100;
-	const month = dateToMonthNum(date) || 0;
-	const planning = dateToPlanning(date);
-	const tickValue = planningToTick[planning] || 0;
+	const time = date.getTime();
+	if (dayTickCache[time])
+	{
+		return dayTickCache[time];
+	}
 
-	return year * 100000 + month * 1000 + tickValue;
+	const year = date.getFullYear();
+	if (!yearTickCache[year])
+	{
+		yearTickCache[year] = getDateToTickMap(year);
+	}
+
+	const dayOfYear = getDayOfYear(date);
+	const tick = yearTickCache[year][dayOfYear];
+
+	dayTickCache[time] = tick;
+	return tick;
 }
 
 /**

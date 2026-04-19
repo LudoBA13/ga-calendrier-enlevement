@@ -51,42 +51,6 @@ function storePlanning(year, range)
 }
 
 /**
- * Extracts the month numbers for the days of the year present in the calendar.
- * @param {number} year The year for the planning.
- * @param {GoogleAppsScript.Spreadsheet.Range} range A 20x12 range containing dates.
- * @returns {number[]} An array of 366 month numbers.
- */
-function storeMonths(year, range)
-{
-	const dates = range.getValues()[0];
-	dates[0] = new Date(year, 0, 1);
-	const result = [];
-
-	for (let i = 0; i < 11; i++)
-	{
-		const start = new Date(dates[i]);
-		const end = new Date(dates[i + 1]);
-		const diffInMs = end.getTime() - start.getTime();
-		const diffInDays = Math.round(diffInMs / (1000 * 60 * 60 * 24));
-
-		for (let d = 0; d < diffInDays; d++)
-		{
-			if (result.length < 366)
-			{
-				result.push(i + 1);
-			}
-		}
-	}
-
-	while (result.length < 366)
-	{
-		result.push(12);
-	}
-
-	return result;
-}
-
-/**
  * Finds the 20x12 calendar range in the given sheet.
  * @param {GoogleAppsScript.Spreadsheet.Sheet} sheet The sheet to search in.
  * @returns {GoogleAppsScript.Spreadsheet.Range} The range.
@@ -129,7 +93,6 @@ function syncAllCaches()
 	const ss = SpreadsheetApp.getActiveSpreadsheet();
 	const sheets = ss.getSheets();
 	const planningData = {};
-	const monthData = {};
 
 	sheets.forEach((sheet) =>
 	{
@@ -142,7 +105,6 @@ function syncAllCaches()
 			{
 				const range = getCalendarRange(sheet);
 				planningData[year] = storePlanning(year, range);
-				monthData[year] = storeMonths(year, range);
 			}
 			catch (error)
 			{
@@ -152,7 +114,6 @@ function syncAllCaches()
 	});
 
 	saveBulkDataToSheet(planningData, 'DateToPlanning', 'Calendar codes');
-	saveBulkDataToSheet(monthData, 'DateToPlanningMonth', 'Calendar months');
 }
 
 /**
@@ -246,17 +207,4 @@ function savePlanning(year, range)
 	const dataMap = {};
 	dataMap[year] = codes;
 	saveBulkDataToSheet(dataMap, 'DateToPlanning', 'Calendar codes');
-}
-
-/**
- * Stores the month data into the 'DateToPlanningMonth' sheet.
- * @param {number} year The year to store.
- * @param {GoogleAppsScript.Spreadsheet.Range} range The source range of dates.
- */
-function saveMonths(year, range)
-{
-	const months = storeMonths(year, range);
-	const dataMap = {};
-	dataMap[year] = months;
-	saveBulkDataToSheet(dataMap, 'DateToPlanningMonth', 'Calendar months');
 }
