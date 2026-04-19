@@ -10,10 +10,6 @@
  *    - Maps each day of the year to a unique planning tick (YYMMWDT).
  *    - Column A: Year | Columns B-NC: 2604110, etc.
  *
- * 3. TickToDate (Calendar Slots - 240 columns)
- *    - Maps each calendar slot (20 slots x 12 months) back to its Date.
- *    - Column A: Year | Columns B-IG: Date values.
- *
  * Empty cells are represented by empty strings in the sheet and null in JavaScript structures.
  */
 
@@ -39,7 +35,6 @@ class CalendarStorage
 	{
 		const calendarMap = calendarManager.getCalendarSheets();
 		const planningDataMap = new Map;
-		const slotDataMap = new Map;
 
 		for (const [year, sheet] of calendarMap)
 		{
@@ -47,7 +42,6 @@ class CalendarStorage
 			{
 				const range = calendarManager.getCalendarRange(sheet);
 				planningDataMap.set(year, this._extractCalendarFromRange(range));
-				slotDataMap.set(year, calendarManager.getPlanningDatesFromCalendarRange(range));
 			}
 			catch (error)
 			{
@@ -59,7 +53,6 @@ class CalendarStorage
 
 		this._saveBulkDataToSheet(planningDataMap, 'DateToPlanning', 'Planning Codes');
 		this._saveBulkDataToSheet(tickDataMap, 'DateToTick', 'Planning Ticks');
-		this._saveBulkDataToSheet(slotDataMap, 'TickToDate', 'Calendar Dates');
 	}
 
 	/**
