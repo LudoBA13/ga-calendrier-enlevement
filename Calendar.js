@@ -114,57 +114,6 @@ function createNewCalendar()
 }
 
 /**
- * Caches the planning data from the current active sheet.
- */
-function cacheCurrentPlanning()
-{
-	const ui = SpreadsheetApp.getUi();
-	const ss = SpreadsheetApp.getActiveSpreadsheet();
-	const sheet = ss.getActiveSheet();
-
-	const result = performCaching(sheet);
-
-	if (result.success)
-	{
-		ui.alert('Succès', result.message, ui.ButtonSet.OK);
-	}
-	else
-	{
-		ui.alert('Erreur', result.message, ui.ButtonSet.OK);
-	}
-}
-
-/**
- * Logic to perform caching for a specific sheet.
- * @param {GoogleAppsScript.Spreadsheet.Sheet} sheet
- * @returns {{success: boolean, message: string}}
- */
-function performCaching(sheet)
-{
-	const sheetName = sheet.getName();
-	const match = sheetName.match(/^Calendrier(20\d+)$/);
-
-	if (!match)
-	{
-		return { success: false, message: 'Cette action ne peut être effectuée que sur une feuille de planning (ex: Calendrier2026).' };
-	}
-
-	const year = parseInt(match[1]);
-
-	try
-	{
-		const range = getCalendarRange(sheet);
-		savePlanning(year, range);
-		saveMonths(year, range);
-		return { success: true, message: 'Le planning ' + year + ' a été mis en cache.' };
-	}
-	catch (error)
-	{
-		return { success: false, message: 'Une erreur est survenue lors de la mise en cache : ' + error.message };
-	}
-}
-
-/**
  * Triggered when a cell is modified.
  * @param {GoogleAppsScript.Events.SheetsOnEdit} e
  */
@@ -193,11 +142,10 @@ function onEdit(e)
 
 	// Automatically cache if the edited value is a Date OR if it could have been date
 	const newValue = range.getValue();
-	const oldValue = e.oldValue;
 
 	if (newValue instanceof Date || newValue === '')
 	{
-		performCaching(sheet);
+		syncAllCaches();
 	}
 }
 
@@ -207,6 +155,59 @@ function onEdit(e)
  * @param {GoogleAppsScript.Spreadsheet.Sheet} sheet The active sheet.
  * @param {number} row The row number of the edit.
  * @param {number} col The column number of the edit.
+ */
+function onEditMonday(range, sheet, row, col)
+{
+	const value = range.getValue();
+
+	// Only modify if the new value of the edited cell is a date
+	if (!(value instanceof Date))
+	{
+		return;
+	}
+
+	const cellAValue = sheet.getRange(row, 1).getDisplayValue();
+	const match = cellAValue.match(/^([1234])/);
+	if (!match)
+	{
+		return;
+	}
+
+	const n = parseInt(match[1]);
+	const count = ((5 - n) * 5) - 1;
+
+	// Read the cells below to check their current values
+	const targetRange = sheet.getRange(row + 1, col, count, 1);
+	const targetValues = targetRange.getValues();
+
+	let daysToAdd = 0;
+	for (let i = 1; i <= count; i++)
+	{
+		// After 4 consecutive days (Tue, Wed, Thu, Fri), skip to next Monday
+		if (i % 5 === 0)
+		{
+			daysToAdd += 3;
+		}
+		else
+		{
+			daysToAdd += 1;
+		}
+
+		const currentIndex = i - 1;
+		const currentValue = targetValues[currentIndex][0];
+
+		// If a next row is empty OR is a date, it should be modified
+		if (currentValue === '' || currentValue instanceof Date)
+		{
+			const newValue = new Date(value);
+			newValue.setDate(newValue.getDate() + daysToAdd);
+			targetValues[currentIndex][0] = newValue;
+		}
+	}
+
+	targetRange.setValues(targetValues);
+}
+umber of the edit.
  */
 function onEditMonday(range, sheet, row, col)
 {

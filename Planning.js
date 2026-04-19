@@ -196,15 +196,3 @@ function saveBulkDataToSheet(newDataMap, sheetName, label)
 	}
 }
 
-/**
- * Stores the planning data into the 'DateToPlanning' sheet.
- * @param {number} year The year to store.
- * @param {GoogleAppsScript.Spreadsheet.Range} range The source range of dates.
- */
-function savePlanning(year, range)
-{
-	const codes = storePlanning(year, range);
-	const dataMap = {};
-	dataMap[year] = codes;
-	saveBulkDataToSheet(dataMap, 'DateToPlanning', 'Calendar codes');
-}
