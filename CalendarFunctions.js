@@ -309,31 +309,49 @@ function dateToTick(date)
 }
 
 /**
+ * Parses a tick into its constituent components.
+ * @param {number|string} tick The tick to parse.
+ * @returns {{year: number, month: number, week: number, day: number, timeslot: number, code: string}} The parsed components.
+ */
+function parseTick(tick)
+{
+	const t = parseInt(tick);
+	if (isNaN(t))
+	{
+		return null;
+	}
+
+	const year = 2000 + Math.floor(t / 100000);
+	const month = Math.floor((t % 100000) / 1000);
+	const week = Math.floor((t % 1000) / 100);
+	const dayDigit = Math.floor((t % 100) / 10);
+	const timeslot = t % 10;
+
+	const dayCode = { 1: 'Lu', 2: 'Ma', 3: 'Me', 4: 'Je', 5: 'Ve' }[dayDigit] || '??';
+	const code = dayCode !== '??' ? week + dayCode : '';
+
+	return {
+		year: year,
+		month: month,
+		week: week,
+		day: dayDigit,
+		timeslot: timeslot,
+		code: code
+	};
+}
+
+/**
  * Gets the date for a specific tick.
  * @param {number} tick The tick.
  * @returns {Date|string} The date or empty string.
  */
 function tickToDate(tick)
 {
-	if (!tick || isNaN(tick))
+	const parsed = parseTick(tick);
+	if (!parsed || parsed.code === '')
 	{
 		throw new Error('Invalid tick value: ' + tick);
 	}
 
-	const year = 2000 + Math.floor(tick / 100000);
-	const month = Math.floor((tick % 100000) / 1000);
-	const tickValue = tick % 1000;
-
-	const week = Math.floor(tickValue / 100);
-	const dayDigit = Math.floor((tickValue % 100) / 10);
-	const dayCode = { 1: 'Lu', 2: 'Ma', 3: 'Me', 4: 'Je', 5: 'Ve' }[dayDigit] || '??';
-
-	if (dayCode === '??')
-	{
-		throw new Error('Invalid day digit in tick: ' + tick);
-	}
-
-	const code = week + dayCode;
-
-	return PLANNING_TO_DATE(code, year, month);
+	return PLANNING_TO_DATE(parsed.code, parsed.year, parsed.month);
 }
