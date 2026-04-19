@@ -11,9 +11,7 @@
  * Example: 2604110 represents 2026, April, Week 1, Monday (Lu).
  */
 
-const yearPlanningCache = {};
 const yearTickCache = {};
-const dayPlanningCache = {};
 const dayTickCache = {};
 const planningDateCache = {};
 const yearPlanningDateMapCache = {};
@@ -60,26 +58,6 @@ function ensureSheet(sheetName, expectedColumns)
 		}
 	}
 	return sheet;
-}
-
-/**
- * Gets the planning map for a specific year from the 'DateToPlanning' sheet.
- * @param {number} year The year to retrieve.
- * @returns {Array<string>} The values from columns B to NC for the given year.
- */
-function getDateToPlanningMap(year)
-{
-	const sheet = ensureSheet('DateToPlanning', 367);
-
-	const row = year - 2020;
-	if (row < 1)
-	{
-		throw new Error('Year must be greater than 2020.');
-	}
-
-	// Columns B to NC is 366 columns starting from column 2.
-	const range = sheet.getRange(row, 2, 1, 366);
-	return range.getValues()[0];
 }
 
 /**
@@ -250,23 +228,14 @@ function DATE_TO_PLANNING(input)
  */
 function dateToPlanning(date)
 {
-	const time = date.getTime();
-	if (dayPlanningCache[time])
+	const tick = dateToTick(date);
+	if (!tick)
 	{
-		return dayPlanningCache[time];
+		return '';
 	}
 
-	const year = date.getFullYear();
-	if (!yearPlanningCache[year])
-	{
-		yearPlanningCache[year] = getDateToPlanningMap(year);
-	}
-
-	const dayOfYear = getDayOfYear(date);
-	const code = yearPlanningCache[year][dayOfYear];
-
-	dayPlanningCache[time] = code;
-	return code;
+	const parsed = parseTick(tick);
+	return parsed ? parsed.code : '';
 }
 
 /**
