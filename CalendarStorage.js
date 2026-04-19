@@ -19,14 +19,14 @@ class CalendarStorage
 	refresh(calendarManager)
 	{
 		const calendarMap = calendarManager.getCalendarSheets();
-		const planningDataMap = {};
+		const planningDataMap = new Map;
 
 		for (const [year, sheet] of calendarMap)
 		{
 			try
 			{
 				const range = calendarManager.getCalendarRange(sheet);
-				planningDataMap[year] = this._extractCalendarFromRange(range);
+				planningDataMap.set(year, this._extractCalendarFromRange(range));
 			}
 			catch (error)
 			{
@@ -36,15 +36,8 @@ class CalendarStorage
 
 		const tickDataMap = calendarManager.convertCalendarsToTicks(calendarMap);
 
-		// Convert tickDataMap (Map) to plain object for bulk saving
-		const tickDataObject = {};
-		for (const [year, ticks] of tickDataMap)
-		{
-			tickDataObject[year] = ticks;
-		}
-
 		this._saveBulkDataToSheet(planningDataMap, 'DateToPlanning', 'Planning Codes');
-		this._saveBulkDataToSheet(tickDataObject, 'TickToDate', 'Planning Ticks');
+		this._saveBulkDataToSheet(tickDataMap, 'TickToDate', 'Planning Ticks');
 	}
 
 	/**
@@ -90,7 +83,7 @@ class CalendarStorage
 
 	/**
 	 * Saves multiple years of data to a specific sheet in bulk, pruning unchanged rows.
-	 * @param {Object.<number, any[]>} newDataMap A map of year to data array.
+	 * @param {Map<number, any[]>} newDataMap A map of year to data array.
 	 * @param {string} sheetName The name of the sheet.
 	 * @param {string} label Label for logging.
 	 * @private
@@ -104,7 +97,7 @@ class CalendarStorage
 			sheet = this.ss.insertSheet(sheetName);
 		}
 
-		const years = Object.keys(newDataMap).map(Number).sort((a, b) => a - b);
+		const years = Array.from(newDataMap.keys()).sort((a, b) => a - b);
 		if (years.length === 0)
 		{
 			return;
@@ -129,7 +122,7 @@ class CalendarStorage
 		for (const year of years)
 		{
 			const rowIdx = year - 2020 - 1; // 0-based index for existingData array
-			const rawData = newDataMap[year];
+			const rawData = newDataMap.get(year);
 			const rowNum = year - 2020;
 
 			if (rowNum < 1)
