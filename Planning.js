@@ -113,7 +113,6 @@ function syncAllCaches()
 		}
 	});
 
-	saveBulkDataToSheet(planningData, 'DateToPlanning', 'Calendar codes');
 }
 
 /**

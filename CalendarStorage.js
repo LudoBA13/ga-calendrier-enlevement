@@ -2,11 +2,7 @@
  * Storage Formats:
  * ----------------
  *
- * 1. DateToPlanning (Civil Year - 366 columns)
- *    - Maps each day of the year to a planning code.
- *    - Column A: Year | Columns B-NC: '1Lu', '2Ma', etc.
- *
- * 2. DateToTick (Civil Year - 366 columns)
+ * 1. DateToTick (Civil Year - 366 columns)
  *    - Maps each day of the year to a unique planning tick (YYMMWDT).
  *    - Column A: Year | Columns B-NC: 2604110, etc.
  *
@@ -51,7 +47,6 @@ class CalendarStorage
 
 		const tickDataMap = calendarManager.convertCalendarsToTicks(calendarMap);
 
-		this._saveBulkDataToSheet(planningDataMap, 'DateToPlanning', 'Planning Codes');
 		this._saveBulkDataToSheet(tickDataMap, 'DateToTick', 'Planning Ticks');
 	}
 
