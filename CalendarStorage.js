@@ -1,15 +1,18 @@
 /**
- * Storage Format: DateToPlanning & TickToDate
- * ------------------------------------------
- * Both sheets follow a consistent bulk storage layout:
- * - Each row represents a full calendar year.
- * - Row number: (year - 2020).
- * - Column A: The year (e.g., 2026).
- * - Columns B to NC (366 columns): Sequential data for each day of the year (0-365).
+ * Storage Formats:
+ * ----------------
  *
- * Data Types:
- * - DateToPlanning: Planning codes as strings (e.g., '1Lu', '2Ma', '3Me').
- * - TickToDate: Planning ticks as numbers (e.g., 2604110).
+ * 1. DateToPlanning (Civil Year - 366 columns)
+ *    - Maps each day of the year to a planning code.
+ *    - Column A: Year | Columns B-NC: '1Lu', '2Ma', etc.
+ *
+ * 2. DateToTick (Civil Year - 366 columns)
+ *    - Maps each day of the year to a unique planning tick (YYMMWDT).
+ *    - Column A: Year | Columns B-NC: 2604110, etc.
+ *
+ * 3. TickToDate (Calendar Slots - 240 columns)
+ *    - Maps each calendar slot (20 slots x 12 months) back to its Date.
+ *    - Column A: Year | Columns B-IG: Date values.
  *
  * Empty cells are represented by empty strings in the sheet and null in JavaScript structures.
  */
@@ -36,6 +39,7 @@ class CalendarStorage
 	{
 		const calendarMap = calendarManager.getCalendarSheets();
 		const planningDataMap = new Map;
+		const slotDataMap = new Map;
 
 		for (const [year, sheet] of calendarMap)
 		{
@@ -43,6 +47,7 @@ class CalendarStorage
 			{
 				const range = calendarManager.getCalendarRange(sheet);
 				planningDataMap.set(year, this._extractCalendarFromRange(range));
+				slotDataMap.set(year, calendarManager.getPlanningDatesFromCalendarRange(range));
 			}
 			catch (error)
 			{
@@ -53,13 +58,14 @@ class CalendarStorage
 		const tickDataMap = calendarManager.convertCalendarsToTicks(calendarMap);
 
 		this._saveBulkDataToSheet(planningDataMap, 'DateToPlanning', 'Planning Codes');
-		this._saveBulkDataToSheet(tickDataMap, 'TickToDate', 'Planning Ticks');
+		this._saveBulkDataToSheet(tickDataMap, 'DateToTick', 'Planning Ticks');
+		this._saveBulkDataToSheet(slotDataMap, 'TickToDate', 'Calendar Dates');
 	}
 
 	/**
 	 * Extracts planning codes from the 20x12 calendar range.
 	 * @param {GoogleAppsScript.Spreadsheet.Range} range A 20x12 range containing dates.
-	 * @returns {any[]} An array of 366 values representing each day of the year.
+	 * @returns {(string|null)[]} An array of 366 values representing each day of the year.
 	 * @private
 	 */
 	_extractCalendarFromRange(range)
@@ -119,6 +125,7 @@ class CalendarStorage
 			return;
 		}
 
+		const colCount = newDataMap.get(years[0]).length;
 		const maxYear = years[years.length - 1];
 		const expectedLastRow = maxYear - 2020;
 
@@ -131,7 +138,7 @@ class CalendarStorage
 
 		// Read existing data
 		const lastRow = sheet.getLastRow();
-		const existingData = lastRow > 0 ? sheet.getRange(1, 1, lastRow, 367).getValues() : [];
+		const existingData = lastRow > 0 ? sheet.getRange(1, 1, lastRow, colCount + 1).getValues() : [];
 
 		let updateCount = 0;
 
@@ -160,8 +167,8 @@ class CalendarStorage
 
 			// Write the year in column A
 			sheet.getRange(rowNum, 1).setValue(year);
-			// Write the 366 values in columns B to ...
-			sheet.getRange(rowNum, 2, 1, 366).setValues([data]);
+			// Write the values in columns B to ...
+			sheet.getRange(rowNum, 2, 1, colCount).setValues([data]);
 			updateCount++;
 		}
 
