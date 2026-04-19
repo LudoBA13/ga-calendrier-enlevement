@@ -7,27 +7,8 @@ function onOpen()
 	const ui = SpreadsheetApp.getUi();
 	ui.createMenu('Calendrier')
 		.addItem('Créer un nouveau calendrier', 'createNewCalendar')
-		.addItem('Mettre ce calendrier en cache', 'cacheCurrentPlanning')
-		.addItem('Mettre tous les calendriers en cache', 'cacheAllPlannings')
 		.addItem('Rafraîchir tout le stockage', 'refreshAllStorage')
 		.addToUi();
-}
-
-/**
- * Caches all planning sheets found in the spreadsheet.
- */
-function cacheAllPlannings()
-{
-	const ui = SpreadsheetApp.getUi();
-	try
-	{
-		syncAllCaches();
-		ui.alert('Succès', 'Tous les calendriers ont été mis en cache avec succès.', ui.ButtonSet.OK);
-	}
-	catch (error)
-	{
-		ui.alert('Erreur', 'Une erreur est survenue lors de la mise en cache groupée : ' + error.message, ui.ButtonSet.OK);
-	}
 }
 
 /**
@@ -99,7 +80,8 @@ function createNewCalendar()
 		try
 		{
 			const row = year - 2020;
-			const range = getCalendarRange(sheet);
+			const manager = new CalendarManager(ss);
+			const range = manager.getCalendarRange(sheet);
 			planningSheet.getRange(row, 1).setValue(year);
 			planningSheet.getRange(row, 2).setFormula('=TOROW(\'' + sheetName + '\'!' + range.getA1Notation() + '; 0; 1)');
 		}
@@ -138,14 +120,6 @@ function onEdit(e)
 	if (cellAValue.endsWith('lundi'))
 	{
 		onEditMonday(range, sheet, row, col);
-	}
-
-	// Automatically cache if the edited value is a Date OR if it could have been date
-	const newValue = range.getValue();
-
-	if (newValue instanceof Date || newValue === '')
-	{
-		syncAllCaches();
 	}
 }
 
