@@ -131,7 +131,7 @@ class CalendarManager
 				const tick = (yy * 100000) + (mm * 1000) + (w * 100) + (d * 10);
 
 				const targetYear = date.getFullYear();
-				const dayIndex = this._getDayOfYear(date);
+				const dayIndex = getDayOfYear(date);
 
 				if (!resultMap.has(targetYear))
 				{
@@ -172,17 +172,4 @@ class CalendarManager
 		}
 	}
 
-	/**
-	 * Gets the day of the year (0-365) for a given date.
-	 * @param {Date} date The date.
-	 * @returns {number} The day of the year.
-	 * @private
-	 */
-	_getDayOfYear(date)
-	{
-		const start = new Date(date.getFullYear(), 0, 0);
-		const diff = date - start;
-		const oneDay = 1000 * 60 * 60 * 24;
-		return Math.floor(diff / oneDay) - 1;
-	}
 }

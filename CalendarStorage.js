@@ -77,7 +77,7 @@ class CalendarStorage
 					continue;
 				}
 
-				const dayIndex = this._getDayOfYear(cellValue);
+				const dayIndex = getDayOfYear(cellValue);
 
 				if (dayIndex < 0 || dayIndex >= 366)
 				{
@@ -170,17 +170,4 @@ class CalendarStorage
 		}
 	}
 
-	/**
-	 * Gets the day of the year (0-365) for a given date.
-	 * @param {Date} date The date.
-	 * @returns {number} The day of the year.
-	 * @private
-	 */
-	_getDayOfYear(date)
-	{
-		const start = new Date(date.getFullYear(), 0, 0);
-		const diff = date - start;
-		const oneDay = 1000 * 60 * 60 * 24;
-		return Math.floor(diff / oneDay) - 1;
-	}
 }

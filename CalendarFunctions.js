@@ -248,7 +248,14 @@ function getDayOfYear(date)
 	const start = new Date(date.getFullYear(), 0, 0);
 	const diff = date - start;
 	const oneDay = 1000 * 60 * 60 * 24;
-	return Math.floor(diff / oneDay) - 1;
+	
+	/**
+	 * We use Math.round() instead of Math.floor() to handle Daylight Saving Time shifts.
+	 * - Spring shift: A day is 23 hours. diff / oneDay = X.958. Math.round() -> X+1 (Correct)
+	 * - Autumn shift: A day is 25 hours. diff / oneDay = X.042. Math.round() -> X (Correct)
+	 * Math.floor() would incorrectly round down to X in the Spring case.
+	 */
+	return Math.round(diff / oneDay) - 1;
 }
 
 /**
