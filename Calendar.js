@@ -175,10 +175,20 @@ function onEditMonday(range, sheet, row, col)
 		{
 			const newValue = new Date(value);
 			newValue.setDate(newValue.getDate() + daysToAdd);
-			targetValues[currentIndex][0] = newValue;
+			targetValues[currentIndex][0] = isHoliday(newValue) ? '' : newValue;
 		}
 	}
 
 	targetRange.setValues(targetValues);
+}
+
+/**
+ * Checks if a date is a holiday (e.g., May 1st).
+ * @param {Date} date The date to check.
+ * @returns {boolean} True if the date is a holiday.
+ */
+function isHoliday(date)
+{
+	return date.getMonth() === 4 && date.getDate() === 1;
 }
 
