@@ -183,12 +183,25 @@ function onEditMonday(range, sheet, row, col)
 }
 
 /**
- * Checks if a date is a holiday (e.g., May 1st).
+ * Checks if a date is a holiday.
  * @param {Date} date The date to check.
  * @returns {boolean} True if the date is a holiday.
  */
 function isHoliday(date)
 {
-	return date.getMonth() === 4 && date.getDate() === 1;
+	const month = date.getMonth();
+	const day = date.getDate();
+
+	const holidays = [
+		{ month: 0, day: 1 },  // Jan 1
+		{ month: 4, day: 1 },  // May 1
+		{ month: 4, day: 8 },  // May 8
+		{ month: 6, day: 14 }, // July 14
+		{ month: 7, day: 15 }, // Aug 15
+		{ month: 10, day: 11 },// Nov 11
+		{ month: 11, day: 25 } // Dec 25
+	];
+
+	return holidays.some(h => h.month === month && h.day === day);
 }
 
